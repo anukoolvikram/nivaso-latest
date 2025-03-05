@@ -1,13 +1,14 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import Layout from "./components/Layout";
-import Home from "./pages/Home/Home";
+import Layout from "./components/Layout/Layout";
 import About from "./pages/About/About";
 import Contact from "./pages/Contact/Contact";
 import Register from "./pages/Register/Register";
 import Login from "./pages/Login/Login";
+import Home from "./pages/Home/Home";
+import './App.css';
 
 const App = () => {
-    const isAuthenticated = localStorage.getItem("token"); // Example: Checking authentication via token
+    const isAuthenticated = localStorage.getItem("token"); 
 
     return (
         <Router>

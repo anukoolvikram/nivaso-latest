@@ -1,14 +1,38 @@
-import { Link } from "react-router-dom";
+import { useState } from "react";
+import './sidebar.css';
 
-const Sidebar = () => {
+const Sidebar = ({ onPageChange }) => {
+    const [currentPage, setCurrentPage] = useState("Dashboard");
+
+    const handleClick = (e) => {
+        const page = e.target.name;
+        setCurrentPage(page);
+        onPageChange(page); // Notify Home component
+    };
+
     return (
-        <div className="w-64 h-screen bg-gray-800 text-white p-5">
-            <h2 className="text-xl font-bold mb-4">Menu</h2>
-            <ul>
-                <li className="mb-2"><Link to="/dashboard" className="block p-2 hover:bg-gray-700">Dashboard</Link></li>
-                <li className="mb-2"><Link to="/settings" className="block p-2 hover:bg-gray-700">Settings</Link></li>
-                <li className="mb-2"><Link to="/profile" className="block p-2 hover:bg-gray-700">Profile</Link></li>
-            </ul>
+        <div className="sidebar">
+            <button 
+                className={`links ${currentPage === "Profile" ? "active" : ""}`} 
+                name="Profile" 
+                onClick={handleClick}
+            >
+                Profile
+            </button>
+            <button 
+                className={`links ${currentPage === "Dashboard" ? "active" : ""}`} 
+                name="Dashboard" 
+                onClick={handleClick}
+            >
+                Dashboard
+            </button>
+            <button 
+                className={`links ${currentPage === "Settings" ? "active" : ""}`} 
+                name="Settings" 
+                onClick={handleClick}
+            >
+                Settings
+            </button>
         </div>
     );
 };
