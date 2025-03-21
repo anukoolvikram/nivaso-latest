@@ -75,12 +75,12 @@ function App() {
             </div>
           </div>
 
-          {/* <div className="flex justify-center items-center mt-6">
-            <p className="text-sm">Don't have an account?</p>
-            <button type="submit" className="ml-2 px-4 py-2 border border-red-500 text-red-500 rounded-lg hover:bg-red-500 hover:text-white transition">
+          <div className="flex justify-center items-center mt-6">
+            <p className="text-sm">Register?</p>
+            <a href='/register' className="ml-2 px-4 py-2 bg-gray-300 black rounded-sm hover:bg-gray-600 hover:text-white transition">  
               Sign Up
-            </button>
-          </div> */}
+            </a>
+          </div>
         </div>
 
         {/* Right Section */}
