@@ -15,7 +15,7 @@
     "@material-tailwind/react": "^2.1.10",
     "@tailwindcss/vite": "^4.0.9",
     "axios": "^1.7.9",
-    "coreui": "^0.4.2-alpha2",
+    "bootstrap": "^5.3.3",
     "email-js": "^2.0.3",
     "emailjs-com": "^3.2.0",
     "flowbite-react": "^0.10.2",

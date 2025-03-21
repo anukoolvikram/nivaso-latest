@@ -43,3 +43,6 @@ __pycache__/
 # Git
 .git/
 .gitignore
+
+server/node_modules
+client/node_modules
