@@ -11,16 +11,14 @@ app.use(bodyParser.json());
 
 const authFedRoutes = require("./src/routes/authFedRoutes");
 const authSocietyRoutes = require("./src/routes/authSocietyRoutes");
-const flatDetailsRoutes = require("./src/routes/flatRoutes");
-const authUserRoutes = require("./src/routes/authUserRoutes");
+const authResidentRoutes = require("./src/routes/authResidentRoutes");
 
 app.use('/temp', (req, res) => {
     res.send('Hello World');
 });
 app.use("/auth/federation", authFedRoutes);
 app.use("/auth/society", authSocietyRoutes);
-app.use("/flat", flatDetailsRoutes);
-app.use("/user", authUserRoutes);
+app.use("/auth/resident", authResidentRoutes);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

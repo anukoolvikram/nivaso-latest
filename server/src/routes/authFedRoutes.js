@@ -79,7 +79,7 @@ router.post("/register", async (req, res) => {
             societies.push({
                 code: societyCode,
                 name: `Society_${societyNumber--}`, 
-                type: 'apartment'
+                type: 'Apartment'
             });
         }
 
@@ -90,7 +90,7 @@ router.post("/register", async (req, res) => {
             societies.push({
                 code: societyCode,
                 name: `Society_${societyNumber--}`, 
-                type: 'tenement'
+                type: 'Tenement'
             });
         }
 
@@ -103,7 +103,10 @@ router.post("/register", async (req, res) => {
         }
 
         await client.query("COMMIT"); // Commit transaction
-        res.status(201).json({ message: "User registered and societies created" });
+        res.status(201).json({ 
+            message: "User registered and societies created",
+            federation_code
+        });
     } catch (error) {
         await client.query("ROLLBACK"); // Rollback transaction in case of error
         console.error("Error in Registration:", error);
@@ -115,33 +118,97 @@ router.post("/register", async (req, res) => {
 
 // LOGIN
 router.post("/login", async (req, res) => {
-
-});
-
-
-// SOCIETY SETUP
-router.post('/register/society', async (req, res) => {
-    const { federation_code, society_code, society_type} = req.body;
-
-    const query = `
-        INSERT INTO society (society_code, federation_code, society_type)
-        VALUES ($1, $2, $3) RETURNING *;
-    `;
-
     try {
-        const client = await pool.connect();
-        const { rows } = await client.query(query, [
-            society_code, federation_code, society_type
-        ]);
-        client.release();
+        const { email, password } = req.body;
 
-        return res.status(201).json({ message: "Society registered successfully", society: rows[0] });
+        // Input Validation
+        if (!email || !password) {
+            return res.status(400).json({ error: "All fields are required" });
+        }
 
+        const user = await pool.query("SELECT * FROM federation WHERE email = $1", [email]);
+
+        if (user.rows.length === 0) {
+            return res.status(404).json({ error: "User not found" });
+        }
+
+        const validPassword = await bcrypt.compare(password, user.rows[0].password);
+
+        if (!validPassword) {
+            return res.status(401).json({ error: "Invalid credentials" });
+        }
+
+        const token = jwt.sign({ id: user.rows[0].primary_id }, SECRET_KEY, { expiresIn: "1h" });
+
+        res.status(200).json({ token, federation_code: user.rows[0].federation_code });
     } catch (error) {
-        console.error('Error inserting society:', error);
-        return res.status(500).json({ message: "Internal Server Error" });
+        console.error("Error logging in:", error);
+        res.status(500).json({ error: "Server Error" });
     }
 });
+
+
+// Get society Data
+router.get('/getSociety', async (req, res) => {
+    try {
+        const societies = await pool.query("SELECT * FROM society where federation_code = $1", [req.query.federationCode]);
+        res.status(200).json(societies.rows);
+    } catch (error) {
+        console.error('Error fetching societies:', error);
+        res.status(500).json({ error: "Server Error" });
+    }
+});
+
+
+router.put('/updateSociety', async (req, res) => {
+    const { societyCode, societyName, societyType } = req.body;
+
+    if (!societyCode || !societyName || !societyType) {
+        return res.status(400).json({ error: "Missing required fields" });
+    }
+
+    try {
+        const result = await pool.query(
+            "UPDATE society SET society_name = $1, society_type = $2 WHERE society_code = $3 RETURNING *",
+            [societyName, societyType, societyCode]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: "Society not found" });
+        }
+
+        res.status(200).json(result.rows[0]); // Send updated society details
+    } catch (error) {
+        console.error('Error updating society:', error);
+        res.status(500).json({ error: "Server Error" });
+    }
+});
+
+
+
+// // SOCIETY SETUP
+// router.post('/register/society', async (req, res) => {
+//     const { federation_code, society_code, society_type} = req.body;
+
+//     const query = `
+//         INSERT INTO society (society_code, federation_code, society_type)
+//         VALUES ($1, $2, $3) RETURNING *;
+//     `;
+
+//     try {
+//         const client = await pool.connect();
+//         const { rows } = await client.query(query, [
+//             society_code, federation_code, society_type
+//         ]);
+//         client.release();
+
+//         return res.status(201).json({ message: "Society registered successfully", society: rows[0] });
+
+//     } catch (error) {
+//         console.error('Error inserting society:', error);
+//         return res.status(500).json({ message: "Internal Server Error" });
+//     }
+// });
 
 
 module.exports = router;
