@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 
 const features = [
   {
-    title: "📜 Legal Document Management",
+    title: "📜 Document Management",
     img: "https://images.unsplash.com/photo-1562564055-71e051d33c19?q=80&w=2070&auto=format&fit=crop",
     features: [
       "Securely store, access, and share society documents",
@@ -20,7 +20,7 @@ const features = [
     ],
   },
   {
-    title: "🏠 Amenity & Facility Booking",
+    title: "🏠 Amenity/Facility Booking",
     img: "https://images.unsplash.com/photo-1469022563428-aa04fef9f5a2?q=80&w=2073&auto=format&fit=crop",
     features: [
       "Reserve community halls, sports grounds, common spaces",
@@ -28,7 +28,7 @@ const features = [
     ],
   },
   {
-    title: "🔒 Security & Gate Management",
+    title: "🔒 Security Management",
     img: "https://images.unsplash.com/photo-1496368077930-c1e31b4e5b44?q=80&w=2070&auto=format&fit=crop",
     features: [
       "Approve entry for domestic staff or personnel",
@@ -36,7 +36,7 @@ const features = [
     ],
   },
   {
-    title: "💰 Maintenance & Payment Track",
+    title: "💰 Track Maintenance",
     img: "https://images.unsplash.com/photo-1593182440959-9d5165b29b59?q=80&w=2071&auto=format&fit=crop",
     features: [
       "Simplified dues collection and tracking of payments",
@@ -60,9 +60,9 @@ const Features = () => {
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 1 }}
-        className="w-full text-center font-bold text-4xl bg-gray-100 text-gray-800 py-3 rounded-xl shadow-lg"
+        className="w-full text-center font-bold text-3xl bg-gray-500 text-white py-2 rounded-xl shadow-lg"
       >
-        Key Features
+        KEY FEATURES
       </motion.div>
 
       {/* Feature Cards */}

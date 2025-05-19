@@ -56,51 +56,51 @@ router.post('/add-blog', async (req, res) => {
 
 
 // GET BLOGS
-router.get('/get-blogs', async (req, res) => {
-    const society_id = req.query.society_id;
+// router.get('/get-blogs', async (req, res) => {
+//     const society_id = req.query.society_id;
     
-    if (!society_id) {
-      return res.status(400).json({ error: 'society_id is required' });
-    }
+//     if (!society_id) {
+//       return res.status(400).json({ error: 'society_id is required' });
+//     }
   
-    try {
-      // Step 1: Get blog posts for the given society_id
-      const blogQuery = `
-        SELECT 
-          bp.id, bp.title, bp.content, bp.post_date, bp.author_id, bp.by_admin,
-          r.name AS author_name
-        FROM blogposts bp
-        JOIN resident r ON bp.author_id = r.id
-        WHERE bp.society_id = $1
-        ORDER BY bp.post_date DESC
-      `;
-      const blogPosts = await pool.query(blogQuery, [society_id]);
+//     try {
+//       // Step 1: Get blog posts for the given society_id
+//       const blogQuery = `
+//         SELECT 
+//           bp.id, bp.title, bp.content, bp.post_date, bp.author_id, bp.by_admin,
+//           r.name AS author_name
+//         FROM blogposts bp
+//         JOIN resident r ON bp.author_id = r.id
+//         WHERE bp.society_id = $1
+//         ORDER BY bp.post_date DESC
+//       `;
+//       const blogPosts = await pool.query(blogQuery, [society_id]);
 
-    //   console.log('blogposts', blogPosts)
+//     //   console.log('blogposts', blogPosts)
   
-      // Step 2: For each blog, get associated tag names
-      const blogData = await Promise.all(blogPosts.rows.map(async (post) => {
-        const tagsRes = await pool.query(
-          `SELECT t.tag_name 
-           FROM blogtags bt
-           JOIN tags t ON bt.tag_id = t.tag_id
-           WHERE bt.post_id = $1`,
-          [post.id]
-        );
+//       // Step 2: For each blog, get associated tag names
+//       const blogData = await Promise.all(blogPosts.rows.map(async (post) => {
+//         const tagsRes = await pool.query(
+//           `SELECT t.tag_name 
+//            FROM blogtags bt
+//            JOIN tags t ON bt.tag_id = t.tag_id
+//            WHERE bt.post_id = $1`,
+//           [post.id]
+//         );
   
-        return {
-          ...post,
-          tags: tagsRes.rows.map(tag => tag.tag_name),
-        };
-      }));
+//         return {
+//           ...post,
+//           tags: tagsRes.rows.map(tag => tag.tag_name),
+//         };
+//       }));
   
-      res.status(200).json(blogData);
+//       res.status(200).json(blogData);
       
-    } catch (err) {
-      console.error('Error fetching blog posts:', err);
-      res.status(500).json({ error: 'Failed to fetch blog posts' });
-    }
-  });
+//     } catch (err) {
+//       console.error('Error fetching blog posts:', err);
+//       res.status(500).json({ error: 'Failed to fetch blog posts' });
+//     }
+//   });
 
 //   GET ALL BLOGS
 router.get('/all-blogs', async (req, res) => {
@@ -463,5 +463,41 @@ router.delete('/delete-blog/:id', async (req, res) => {
         });
     }
 });
+
+
+router.get('/author-name/:id', async (req, res) => {
+  const author_id = req.params.id;
+
+  try {
+    await pool.query('BEGIN');
+
+    const result = await pool.query(
+      'SELECT name FROM resident WHERE id = $1',
+      [author_id]
+    );
+
+    if (result.rows.length > 0) {
+      await pool.query('COMMIT');
+      return res.status(200).json({
+        success: true,
+        author_name: result.rows[0].name,
+      });
+    } else {
+      await pool.query('COMMIT');
+      return res.status(404).json({
+        success: false,
+        message: 'Author not found',
+      });
+    }
+  } catch (error) {
+    await pool.query('ROLLBACK');
+    console.error('Error fetching author name:', error.message);
+    return res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+    });
+  }
+});
+
   
 module.exports = router;

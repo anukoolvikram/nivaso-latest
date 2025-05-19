@@ -5,6 +5,7 @@ import SocietyNoticeboard from '../../components/SocietyDashboard/SocietyNoticeb
 import SocietyCommunity from '../../components/SocietyDashboard/SocietyCommunity';
 import SocietyComplaints from '../../components/SocietyDashboard/SocietyComplaints';
 import SocietyFlatSetup from '../../components/SocietyDashboard/SocietyFlatSetup';
+import SocietyDocuments from '../../components/SocietyDashboard/SocietyDocuments';
 
 const SocietyDashboard = () => {
   const navigate = useNavigate();
@@ -36,18 +37,18 @@ const SocietyDashboard = () => {
     <div className="flex min-h-screen">
       <Sidebar currentPage={currentPage} onPageChange={setCurrentPage} />
       <div className="w-4/5 p-8">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-3xl font-bold">{currentPage}</h2>
+        <div className="flex justify-between items-center mb-4 -mt-2">
+          <div className="text-4xl font-semibold mb-6 text-gray-700">{currentPage}</div>
           <div>
             <button
-              onClick={()=>{navigate('/')}}
-              className="bg-green-500 hover:bg-blue-600 text-white font-semibold px-4 py-2 rounded"
+              onClick={() => navigate('/')}
+              className="bg-gray-800 hover:bg-gray-700 text-white font-medium px-4 py-2 rounded-md shadow-sm transition-colors duration-200"
             >
               Home
             </button>
             <button
               onClick={handleLogout}
-              className="bg-red-500 hover:bg-blue-600 text-white font-semibold px-4 py-2 rounded"
+              className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium px-4 py-2 rounded-md shadow-sm transition-colors duration-200"
             >
               Logout
             </button>
@@ -73,6 +74,11 @@ const SocietyDashboard = () => {
         {currentPage === "Complaints" && (
           <div className="text-gray-700">
             <SocietyComplaints/>
+          </div>
+        )}
+        {currentPage === "Documents" && (
+          <div className="text-gray-700">
+            <SocietyDocuments/>
           </div>
         )}
       </div>

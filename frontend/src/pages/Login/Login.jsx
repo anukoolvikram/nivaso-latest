@@ -1,15 +1,15 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import FederationRegistration from "../Registration/FederationLogin";
-import SocietyRegistration from "../Registration/SocietyLogin";
-import ResidentRegistration from "../Registration/ResidentLogin";
+import FederationLogin from "./FederationLogin";
+import SocietyLogin from "./SocietyLogin";
+import ResidentLogin from "./ResidentLogin";
 import { useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
 
 const components = {
-  Federation: () => <div className="p-4 border rounded-lg"><FederationRegistration/></div>,
-  Society: () => <div className="p-4 border rounded-lg"><SocietyRegistration/></div>,
-  Resident: () => <div className="p-4 border rounded-lg"><ResidentRegistration/></div>,
+  Federation: () => <div className="p-4 border rounded-lg"><FederationLogin/></div>,
+  Society: () => <div className="p-4 border rounded-lg"><SocietyLogin/></div>,
+  Resident: () => <div className="p-4 border rounded-lg"><ResidentLogin/></div>,
 };
 
 let decoded = null;
@@ -22,26 +22,25 @@ export default function ButtonSwitcher() {
   const [active, setActive] = useState("Federation");
   const navigate = useNavigate();
 
-  useEffect(() => {
-    console.log(token)
-    if (token) {
-      navigate('/');
-    }
-  }, []);
+  // useEffect(() => {
+  //   if (token) {
+  //     navigate('/');
+  //   }
+  // }, []);
 
   return (
     <div className="h-screen">
       <div className="flex flex-col items-center space-y-6 relative">
         {/* Home Button */}
-        <div className="flex items-center justify-between w-full px-6 mt-4">
+        <div className="flex items-center justify-between w-full p-2" style={{ backgroundColor: "#44A3B4" }}>
           <img
-            src="/nivaso_logo.jpg"
+            src="/nivasoLogo2.jpg"
             alt="Nivaso Logo"
-            className="h-12 w-auto object-contain cursor-pointer"
+            className="h-10 w-auto object-contain cursor-pointer"
           />
           <button
             onClick={() => navigate('/')}
-            className="bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium py-2 px-4 rounded"
+            className="bg-gray-800 hover:bg-gray-700 text-white font-medium px-4 py-2 rounded-md shadow-sm transition-colors duration-200"
           >
             Home
           </button>

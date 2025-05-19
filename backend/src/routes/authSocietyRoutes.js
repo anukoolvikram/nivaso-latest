@@ -337,7 +337,13 @@ function generatePassword(length) {
     return password;
 }
 
+function isValidEmail(email) {
+    return /^\S+@\S+\.\S+$/.test(email);
+}
 
+function isValidPhone(phone) {
+    return /^\d{10}$/.test(phone);
+}
 
 
 // *****************************************************************
@@ -388,60 +394,114 @@ router.get("/getFlatsData/:society_code", async (req, res) => {
 router.post('/saveFlatsData', async (req, res) => {
     const client = await pool.connect();
     try {
-        // Note: Changed from req.params to req.body since this is a POST request
-        const { id, society_code, flat_id, occupancy, owner_id, resident_id } = req.body;
-        const { owner_name, owner_email, owner_phone, owner_address } = req.body;
-        const { resident_name, resident_email, resident_phone, resident_address } = req.body;
+        const {
+            id,
+            society_code,
+            flat_id,
+            occupancy,
+            owner_id,
+            resident_id,
+            owner_name,
+            owner_email,
+            owner_phone,
+            owner_address,
+            resident_name,
+            resident_email,
+            resident_phone,
+            resident_address
+        } = req.body;
 
         let updatedOwnerId = owner_id;
         let updatedResidentId = resident_id;
 
 
-        // Handle owner creation/update
+        // Basic validations
+        if (owner_email && !isValidEmail(owner_email)) {
+            return res.status(400).json({ error: "Invalid owner email format" });
+        }
+
+        if (owner_phone && !isValidPhone(owner_phone)) {
+            return res.status(400).json({ error: "Owner phone must be exactly 10 digits" });
+        }
+
+        if (occupancy === 'Rented') {
+            if (resident_email && !isValidEmail(resident_email)) {
+                return res.status(400).json({ error: "Invalid resident email format" });
+            }
+
+            if (resident_phone && !isValidPhone(resident_phone)) {
+                return res.status(400).json({ error: "Resident phone must be exactly 10 digits" });
+            }
+        }
+
+
+        // === Check for duplicate owner email ===
+        if (owner_email) {
+            const existingOwner = await client.query(
+                `SELECT id FROM resident WHERE email = $1`,
+                [owner_email]
+            );
+
+            if (existingOwner.rows.length > 0 && existingOwner.rows[0].id !== owner_id) {
+                return res.status(400).json({ error: `Email already exists.` });
+            }
+        }
+
+        // === Check for duplicate resident email ===
+        if (occupancy === 'Rented' && resident_email) {
+            const existingResident = await client.query(
+                `SELECT id FROM resident WHERE email = $1`,
+                [resident_email]
+            );
+
+            if (existingResident.rows.length > 0 && existingResident.rows[0].id !== resident_id) {
+                return res.status(400).json({ error: `Email already exists.` });
+            }
+        }
+
+        // === Handle Owner ===
         if (owner_name && owner_email) {
             if (owner_id) {
                 await client.query(
                     `UPDATE resident 
                      SET name=$1, email=$2, phone=$3, address=$4
-                     WHERE id=$5 RETURNING *`,
+                     WHERE id=$5`,
                     [owner_name, owner_email, owner_phone, owner_address, owner_id]
                 );
             } else {
-                const owner_password=generatePassword(10);
+                const owner_password = generatePassword(10);
                 const ownerResult = await client.query(
                     `INSERT INTO resident (name, email, phone, society_code, flat_id, address, is_owner, initial_password)
-                     VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
+                     VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id`,
                     [owner_name, owner_email, owner_phone, society_code, flat_id, owner_address, true, owner_password]
                 );
                 updatedOwnerId = ownerResult.rows[0].id;
             }
         }
 
-        // Handle resident creation/update only if flat is rented
+        // === Handle Resident ===
         if (occupancy === 'Rented' && resident_name && resident_email) {
             if (resident_id) {
                 await client.query(
                     `UPDATE resident 
                      SET name=$1, email=$2, phone=$3, address=$4
-                     WHERE id=$5 RETURNING *`,
+                     WHERE id=$5`,
                     [resident_name, resident_email, resident_phone, resident_address || null, resident_id]
                 );
             } else {
-                const resident_password=generatePassword(8);
+                const resident_password = generatePassword(8);
                 const residentResult = await client.query(
                     `INSERT INTO resident (name, email, phone, society_code, flat_id, address, is_owner, initial_password)
-                     VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
+                     VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id`,
                     [resident_name, resident_email, resident_phone, society_code, flat_id, resident_address || null, false, resident_password]
                 );
                 updatedResidentId = residentResult.rows[0].id;
             }
         } else {
-            // If not rented, ensure resident_id is null
             updatedResidentId = null;
         }
-        
-        // console.log(owner_id, resident_id);
-        // Update flat information
+
+        // === Update Flat ===
         const flatResult = await client.query(
             `UPDATE flat 
              SET flat_id=$1, occupancy=$2, owner_id=$3, resident_id=$4
@@ -465,15 +525,67 @@ router.post('/saveFlatsData', async (req, res) => {
 });
 
 
+
 // CREATE flat
 router.post("/createFlat", async (req, res) => {
     const client = await pool.connect();
     try {
-        const { society_code, flat_id, occupancy, owner_name, owner_email, owner_phone, owner_address, resident_name, resident_email, resident_phone, resident_address } = req.body;
+        const {
+            society_code,
+            flat_id,
+            occupancy,
+            owner_name,
+            owner_email,
+            owner_phone,
+            owner_address,
+            resident_name,
+            resident_email,
+            resident_phone,
+            resident_address
+        } = req.body;
+
+        if (owner_email && !isValidEmail(owner_email)) {
+            return res.status(400).json({ error: "Invalid owner email format" });
+        }
+        
+        if (owner_phone && !isValidPhone(owner_phone)) {
+            return res.status(400).json({ error: "Owner phone must be exactly 10 digits" });
+        }
+        
+        if (resident_email && !isValidEmail(resident_email)) {
+            return res.status(400).json({ error: "Invalid resident email format" });
+        }
+        
+        if (resident_phone && !isValidPhone(resident_phone)) {
+            return res.status(400).json({ error: "Resident phone must be exactly 10 digits" });
+        }
+        
 
         await client.query('BEGIN');
 
-        // First create the flat
+        // Check if owner email already exists
+        if (owner_email) {
+            const ownerCheck = await client.query(
+                `SELECT * FROM resident WHERE email = $1`,
+                [owner_email]
+            );
+            if (ownerCheck.rows.length > 0) {
+                throw { code: "EMAIL_EXISTS", type: "owner", email: owner_email };
+            }
+        }
+
+        // Check if resident email already exists
+        if (resident_email) {
+            const residentCheck = await client.query(
+                `SELECT * FROM resident WHERE email = $1`,
+                [resident_email]
+            );
+            if (residentCheck.rows.length > 0) {
+                throw { code: "EMAIL_EXISTS", type: "resident", email: resident_email };
+            }
+        }
+
+        // Insert the flat
         const flatResult = await client.query(
             `INSERT INTO flat (flat_id, occupancy, society_code)
              VALUES ($1, $2, $3) RETURNING *`,
@@ -484,9 +596,8 @@ router.post("/createFlat", async (req, res) => {
         let ownerId = null;
         let residentId = null;
 
-        // Create owner if details provided
         if (owner_name && owner_email) {
-            const owner_password=generatePassword(10);
+            const owner_password = generatePassword(10);
             const ownerResult = await client.query(
                 `INSERT INTO resident (name, email, phone, society_code, flat_id, address, is_owner, initial_password)
                  VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
@@ -495,9 +606,8 @@ router.post("/createFlat", async (req, res) => {
             ownerId = ownerResult.rows[0].id;
         }
 
-        // Create resident if details provided and occupancy is rented
         if (occupancy === 'Rented' && resident_name && resident_email) {
-            const resident_password=generatePassword(8);
+            const resident_password = generatePassword(8);
             const residentResult = await client.query(
                 `INSERT INTO resident (name, email, phone, society_code, flat_id, address, is_owner, initial_password)
                  VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
@@ -506,7 +616,6 @@ router.post("/createFlat", async (req, res) => {
             residentId = residentResult.rows[0].id;
         }
 
-        // Update flat with owner/resident IDs
         await client.query(
             `UPDATE flat 
              SET owner_id = $1, resident_id = $2
@@ -516,7 +625,6 @@ router.post("/createFlat", async (req, res) => {
 
         await client.query('COMMIT');
 
-        // Get the complete flat data with owner/resident details
         const completeFlat = await getCompleteFlatData(client, flat.id);
 
         res.status(201).json({
@@ -526,12 +634,19 @@ router.post("/createFlat", async (req, res) => {
 
     } catch (error) {
         await client.query('ROLLBACK');
+        if (error.code === "EMAIL_EXISTS") {
+            return res.status(400).json({
+                error: 'Email already exists.'
+            });
+        }
+
         console.error("Error creating flat:", error);
         res.status(500).json({ error: "Server error" });
     } finally {
         client.release();
     }
 });
+
 
 // Helper function to get complete flat data
 async function getCompleteFlatData(client, flatId) {

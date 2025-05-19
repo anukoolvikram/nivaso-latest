@@ -179,6 +179,131 @@ router.put('/approve-notice/:notice_id', async (req, res) => {
     }
   });
 
+  router.get('/user-name/:id', async (req, res) => {
+    const author_id = req.params.id;
+  
+    try {
+      const result = await pool.query(
+        'SELECT name, flat_id FROM resident WHERE id = $1',
+        [author_id]
+      );
+  
+      if (result.rows.length > 0) {
+        return res.status(200).json({
+          success: true,
+          author_name: result.rows[0].name,
+          flat_id:result.rows[0].flat_id
+        });
+      } else {
+        return res.status(404).json({
+          success: false,
+          message: 'Author not found',
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching author name:', error.message);
+      return res.status(500).json({
+        success: false,
+        message: 'Internal server error',
+      });
+    }
+  });
+
+// federation notices routes
+
+router.get('/federation-notice/get/:id', async (req, res) => {
+  const fed_id = req.params.id;
+
+  try {
+    const result = await pool.query(
+      `SELECT * FROM federation_notices WHERE federation_id = $1 ORDER BY date_posted DESC`,
+      [fed_id]
+    );
+    res.status(200).json(result.rows);
+  } catch (error) {
+    console.error('Error getting notices:', error);
+    res.status(500).json({ error: 'Failed to get federation notices' });
+  }
+});
 
 
+router.post('/federation-notice/post', async (req, res) => {
+  const { federation_id, title, description, type } = req.body;
+  const date_posted = new Date();
+
+  try {
+    await pool.query(
+      `INSERT INTO federation_notices (federation_id, title, description, type, date_posted) 
+       VALUES ($1, $2, $3, $4, $5)`,
+      [federation_id, title, description, type, date_posted]
+    );
+    res.status(201).json({ success: true, message: 'Notice posted' });
+  } catch (err) {
+    console.error('Error posting notice:', err.message);
+    res.status(500).json({ success: false, message: 'Internal error' });
+  }
+});
+
+router.put('/federation-notice/edit/:id', async (req, res) => {
+  const { id } = req.params;
+  const { title, description, type } = req.body;
+
+  try {
+    const result = await pool.query(
+      `UPDATE federation_notices 
+       SET title = $1, description = $2, type = $3, date_posted = NOW() 
+       WHERE id = $4 
+       RETURNING *`,
+      [title, description, type, id]
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ success: false, message: 'Notice not found' });
+    }
+
+    res.status(200).json({ success: true, message: 'Notice updated', notice: result.rows[0] });
+  } catch (err) {
+    console.error('Error updating federation notice:', err.message);
+    res.status(500).json({ success: false, message: 'Failed to update notice' });
+  }
+});
+
+router.get('/federation-id/:id', async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const societyResult = await pool.query(
+      'SELECT federation_code FROM society WHERE id = $1',
+      [id]
+    );
+
+    if (societyResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Society not found' });
+    }
+
+    const federationCode = societyResult.rows[0].federation_code;
+
+    // console.log("(((((((((((((((((((")
+    // console.log(federationCode)
+
+    const federationResult = await pool.query(
+      'SELECT id FROM federation WHERE federation_code = $1',
+      [federationCode]
+    );
+
+    // console.log(federationResult.rows[0])
+
+    if (federationResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Federation not found for this society' });
+    }
+
+    return res.json({ federation_id: federationResult.rows[0].id });
+
+  } catch (err) {
+    console.error('Error fetching federation_id:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+  
 module.exports = router;

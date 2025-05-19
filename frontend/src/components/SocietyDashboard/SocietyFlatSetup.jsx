@@ -11,6 +11,10 @@ const SocietyFlatSetup = ({ society_code: propSocietyCode }) => {
     const [ownerEntered, setOwnerEntered] = useState(false);
     const [residentEntered, setResidentEntered] = useState(false);
     const [isNewFlat, setIsNewFlat] = useState(false);
+    const [isConfirmed, setIsConfirmed] = useState(false);
+    const [serverError, setServerError] = useState("");
+
+
 
     const navigate = useNavigate();
 
@@ -54,6 +58,8 @@ const SocietyFlatSetup = ({ society_code: propSocietyCode }) => {
         setValidationErrors({});
         setOwnerEntered(false);
         setResidentEntered(false);
+        setIsConfirmed(false);
+
     };
 
     const handleAddNew = () => {
@@ -77,6 +83,8 @@ const SocietyFlatSetup = ({ society_code: propSocietyCode }) => {
         setValidationErrors({});
         setOwnerEntered(false);
         setResidentEntered(false);
+        setIsConfirmed(false);
+
     };
 
     const saveAllData = async () => {
@@ -85,40 +93,51 @@ const SocietyFlatSetup = ({ society_code: propSocietyCode }) => {
         }
         
         try {
-            const { id, flat_id, occupancy, owner, resident } = editedData;
-            
-            const endpoint = isNewFlat ? '/auth/society/createFlat' : '/auth/society/saveFlatsData';
-            
-            const response = await fetch(endpoint, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    id: isNewFlat ? undefined : id,
-                    society_code: societyCode,
-                    flat_id,
-                    occupancy,
-                    owner_id: isNewFlat ? null : currentFlat.owner_id,
-                    resident_id: isNewFlat ? null : currentFlat.resident_id,
-                    owner_name: owner.name,
-                    owner_email: owner.email,
-                    owner_phone: owner.phone,
-                    owner_address: owner.address,
-                    resident_name: resident.name,
-                    resident_email: resident.email,
-                    resident_phone: resident.phone,
-                    resident_address: resident.address
-                }),
-            });
-            
-            if (!response.ok) throw new Error("Failed to save data");
-            
-            await response.json();
-            setShowModal(false);
-            setIsNewFlat(false);
-            fetchFlats();
-        } catch (error) {
-            console.error("Error saving flat data:", error);
-        }
+          const { id, flat_id, occupancy, owner, resident } = editedData;
+      
+          const endpoint = isNewFlat ? '/auth/society/createFlat' : '/auth/society/saveFlatsData';
+      
+          const response = await fetch(endpoint, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                  id: isNewFlat ? undefined : id,
+                  society_code: societyCode,
+                  flat_id,
+                  occupancy,
+                  owner_id: isNewFlat ? null : currentFlat.owner_id,
+                  resident_id: isNewFlat ? null : currentFlat.resident_id,
+                  owner_name: owner.name,
+                  owner_email: owner.email,
+                  owner_phone: owner.phone,
+                  owner_address: owner.address,
+                  resident_name: resident.name,
+                  resident_email: resident.email,
+                  resident_phone: resident.phone,
+                  resident_address: resident.address
+              }),
+          });
+      
+          const data = await response.json();
+          console.log(data);
+      
+          if (!response.ok) {
+              if (data?.error) {
+                  setServerError(data.error); // Show specific backend error
+              } else {
+                  setServerError("An error occurred while saving.");
+              }
+              return;
+          }
+      
+          setShowModal(false);
+          setIsNewFlat(false);
+          setServerError("");
+          fetchFlats();
+      } catch (error) {
+          console.error("Error saving flat data:", error);
+          setServerError("Server error. Please try again later.");
+      }
     };
 
     const validateDetails = () => {
@@ -207,230 +226,225 @@ const SocietyFlatSetup = ({ society_code: propSocietyCode }) => {
             },
         }));
     };
+  
 
     return (
-        <div className="p-4">
-            <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-bold">Flat Details</h2>
-
-               <div className="">
-                    {/* <button className="bg-green-400 p-2 rounded-2xl text-white mt-2" onClick={() => navigate("/society/dashboard")}>
-                        Dashboard
-                    </button> */}
-                    <button
-                        onClick={handleAddNew}
-                        className="bg-blue-500 text-white px-4 py-2 hover:bg-blue-600"
-                    >
-                        Add New Flat
-                    </button>
-               </div>
-            </div>
-
-            {flats.length > 0 ? (
-                <table className="mt-4 w-full border-collapse border border-gray-300">
-                    <thead>
-                        <tr className="bg-gray-200">
-                            <th className="border p-2">Sno</th>
-                            <th className="border p-2">Flat ID</th>
-                            <th className="border p-2">Occupancy</th>
-                            <th className="border p-2">Owner</th>
-                            <th className="border p-2">Resident</th>
-                            <th className="border p-2">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {flats.map((flat, index) => (
-                            <tr key={flat.id} className="border">
-                                <td className="border p-2">{index + 1}</td>
-                                <td className="border p-2">{flat.flat_id}</td>
-                                <td className="border p-2">{flat.occupancy || "No Info"}</td>
-                                <td className="border p-2">
-                                    {flat.owner ? (
-                                        <div>
-                                            <p>Name: {flat.owner.name}</p>
-                                            <p>Email: {flat.owner.email}</p>
-                                            <p>Phone: {flat.owner.phone}</p>
-                                        </div>
-                                    ) : (
-                                        "No Info"
-                                    )}
-                                </td>
-                                <td className="border p-2">
-                                    {flat.occupancy === 'Rented' && flat.resident ? (
-                                        <div>
-                                            <p>Name: {flat.resident.name}</p>
-                                            <p>Email: {flat.resident.email}</p>
-                                            <p>Phone: {flat.resident.phone}</p>
-                                        </div>
-                                    ) : (
-                                        "No Info"
-                                    )}
-                                </td>
-                                <td className="border p-2">
-                                    <button
-                                        onClick={() => handleEdit(flat)}
-                                        className="bg-yellow-500 text-white px-2 py-1 rounded hover:bg-yellow-600"
-                                    >
-                                        Edit
-                                    </button>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            ) : (
-                <p>No flats found for this society.</p>
-            )}
-
-            {showModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-                    <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-                        <h3 className="text-xl font-bold mb-4">
-                            {isNewFlat ? "Add New Flat" : "Edit Flat Details"}
-                        </h3>
-                        
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                            <div>
-                                <label className="block mb-2 font-medium">Flat ID*</label>
-                                <input
-                                    type="text"
-                                    value={editedData.flat_id || ''}
-                                    onChange={(e) => handleChange("flat_id", e.target.value)}
-                                    className={`border p-2 w-full rounded ${validationErrors.flat_id ? 'border-red-500' : ''}`}
-                                />
-                                {validationErrors.flat_id && <p className="text-red-500 text-sm">{validationErrors.flat_id}</p>}
-                            </div>
-                            
-                            <div>
-                                <label className="block mb-2 font-medium">Occupancy*</label>
-                                <select
-                                    value={editedData.occupancy || ''}
-                                    onChange={(e) => handleChange("occupancy", e.target.value)}
-                                    className={`border p-2 w-full rounded ${validationErrors.occupancy ? 'border-red-500' : ''}`}
-                                >
-                                    <option value="">Select Occupancy</option>
-                                    <option value="Rented">Rented</option>
-                                    <option value="Occupied">Occupied</option>
-                                    <option value="Unoccupied">Unoccupied</option>
-                                </select>
-                                {validationErrors.occupancy && <p className="text-red-500 text-sm">{validationErrors.occupancy}</p>}
-                            </div>
+        <div className=" bg-white rounded-xl">
+        
+        {flats.length > 0 ? (
+          <div className="overflow-x-auto mt-2 shadow">
+            <table className="w-full table-auto border-collapse rounded shadow-sm overflow-hidden">
+              <thead>
+                <tr className="bg-gray-100 text-left text-sm text-gray-700">
+                  <th className="px-3 py-2 border">S.No.</th>
+                  <th className="px-3 py-2 border">Flat ID</th>
+                  <th className="px-3 py-2 border">Occupancy</th>
+                  <th className="px-3 py-2 border">Owner</th>
+                  <th className="px-3 py-2 border">Resident</th>
+                  <th className="px-3 py-2 border">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="text-sm text-gray-800">
+                {flats.map((flat, index) => (
+                  <tr key={flat.id} className="hover:bg-gray-50 transition">
+                    <td className="px-3 py-2 border">{index + 1}</td>
+                    <td className="px-3 py-2 border">{flat.flat_id}</td>
+                    <td className="px-3 py-2 border">{flat.occupancy || "No Info"}</td>
+                    <td className="px-3 py-2 border">
+                      {flat.owner ? (
+                        <div className="space-y-1">
+                          <p className="text-gray-600">Name: <span className="text-black">{flat.owner.name}</span></p>
+                          <p className="text-gray-600">Email: <span className="text-black">{flat.owner.email}</span></p>
+                          <p className="text-gray-600">Phone: <span className="text-black">{flat.owner.phone}</span></p>
                         </div>
-                        
-                        <div className="mb-6 p-4 border rounded">
-                            <h4 className="font-bold mb-3">Owner Details</h4>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block mb-2">Name</label>
-                                    <input
-                                        type="text"
-                                        value={editedData.owner?.name || ''}
-                                        onChange={(e) => handleOwnerChange("name", e.target.value)}
-                                        className={`border p-2 w-full rounded ${validationErrors.ownerName ? 'border-red-500' : ''}`}
-                                    />
-                                    {validationErrors.ownerName && <p className="text-red-500 text-sm">{validationErrors.ownerName}</p>}
-                                </div>
-                                <div>
-                                    <label className="block mb-2">Email</label>
-                                    <input
-                                        type="email"
-                                        value={editedData.owner?.email || ''}
-                                        onChange={(e) => handleOwnerChange("email", e.target.value)}
-                                        className={`border p-2 w-full rounded ${validationErrors.ownerEmail ? 'border-red-500' : ''}`}
-                                    />
-                                    {validationErrors.ownerEmail && <p className="text-red-500 text-sm">{validationErrors.ownerEmail}</p>}
-                                </div>
-                                <div>
-                                    <label className="block mb-2">Phone</label>
-                                    <input
-                                        type="tel"
-                                        value={editedData.owner?.phone || ''}
-                                        onChange={(e) => handleOwnerChange("phone", e.target.value)}
-                                        className={`border p-2 w-full rounded ${validationErrors.ownerPhone ? 'border-red-500' : ''}`}
-                                    />
-                                    {validationErrors.ownerPhone && <p className="text-red-500 text-sm">{validationErrors.ownerPhone}</p>}
-                                </div>
-                                <div>
-                                    <label className="block mb-2">Address</label>
-                                    <input
-                                        type="text"
-                                        value={editedData.owner?.address || ''}
-                                        onChange={(e) => handleOwnerChange("address", e.target.value)}
-                                        className="border p-2 w-full rounded"
-                                    />
-                                </div>
-                            </div>
+                      ) : (
+                        "No Info"
+                      )}
+                    </td>
+                    <td className="p-3 border">
+                      {flat.occupancy === 'Rented' && flat.resident ? (
+                        <div className="space-y-1">
+                          <p className="font-medium">{flat.resident.name}</p>
+                          <p className="text-xs text-gray-600">{flat.resident.email}</p>
+                          <p className="text-xs text-gray-600">{flat.resident.phone}</p>
                         </div>
-                        
-                        {(editedData.occupancy === 'Rented' || (currentFlat && currentFlat.occupancy === 'Rented')) && (
-                            <div className="mb-6 p-4 border rounded">
-                                <h4 className="font-bold mb-3">Resident Details</h4>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="block mb-2">Name</label>
-                                        <input
-                                            type="text"
-                                            value={editedData.resident?.name || ''}
-                                            onChange={(e) => handleResidentChange("name", e.target.value)}
-                                            className={`border p-2 w-full rounded ${validationErrors.residentName ? 'border-red-500' : ''}`}
-                                        />
-                                        {validationErrors.residentName && <p className="text-red-500 text-sm">{validationErrors.residentName}</p>}
-                                    </div>
-                                    <div>
-                                        <label className="block mb-2">Email</label>
-                                        <input
-                                            type="email"
-                                            value={editedData.resident?.email || ''}
-                                            onChange={(e) => handleResidentChange("email", e.target.value)}
-                                            className={`border p-2 w-full rounded ${validationErrors.residentEmail ? 'border-red-500' : ''}`}
-                                        />
-                                        {validationErrors.residentEmail && <p className="text-red-500 text-sm">{validationErrors.residentEmail}</p>}
-                                    </div>
-                                    <div>
-                                        <label className="block mb-2">Phone</label>
-                                        <input
-                                            type="tel"
-                                            value={editedData.resident?.phone || ''}
-                                            onChange={(e) => handleResidentChange("phone", e.target.value)}
-                                            className={`border p-2 w-full rounded ${validationErrors.residentPhone ? 'border-red-500' : ''}`}
-                                        />
-                                        {validationErrors.residentPhone && <p className="text-red-500 text-sm">{validationErrors.residentPhone}</p>}
-                                    </div>
-                                    <div>
-                                        <label className="block mb-2">Address</label>
-                                        <input
-                                            type="text"
-                                            value={editedData.resident?.address || ''}
-                                            onChange={(e) => handleResidentChange("address", e.target.value)}
-                                            className="border p-2 w-full rounded"
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-                        
-                        <div className="flex justify-end space-x-4 mt-6">
-                            <button
-                                onClick={() => {
-                                    setShowModal(false);
-                                    setValidationErrors({});
-                                }}
-                                className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                onClick={saveAllData}
-                                className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
-                            >
-                                {isNewFlat ? "Create Flat" : "Save Changes"}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
+                      ) : (
+                        "No Info"
+                      )}
+                    </td>
+                    <td className="p-3 border">
+                      <button
+                        onClick={() => handleEdit(flat)}
+                        className="bg-blue-500 hover:bg-blue-400 text-white px-3 py-1 rounded-md text-sm"
+                      >
+                        Edit
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <p className="text-gray-600">No flats found for this society.</p>
+        )}
 
+        <div className="flex items-end mt-6">
+          {/* <h2 className="text-2xl font-semibold text-gray-800">Flat Management</h2> */}
+          <button
+            onClick={handleAddNew}
+            className="bg-teal-500 hover:bg-teal-400 text-white font-medium px-5 py-2 rounded-lg transition"
+          >
+            Add New Flat
+          </button>
         </div>
+      
+        {/* Modal for Add/Edit Flat */}
+        {showModal && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg shadow-2xl p-6 w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+              <div className="text-xl font-semibold underline mb-6">
+                {isNewFlat ? "Add New Flat" : "Edit Flat Details"}
+              </div>
+      
+              {/* Flat Details */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                  <label className="block mb-1 font-medium text-gray-700">Flat Id</label>
+                  <input
+                    type="text"
+                    value={editedData.flat_id || ''}
+                    onChange={(e) => handleChange("flat_id", e.target.value)}
+                    className={`w-full border px-3 py-2 rounded-md ${
+                      validationErrors.flat_id ? 'border-red-500' : 'border-gray-300'
+                    }`}
+                  />
+                  {validationErrors.flat_id && <p className="text-red-500 text-sm mt-1">{validationErrors.flat_id}</p>}
+                </div>
+      
+                <div>
+                  <label className="block mb-1 font-medium text-gray-700">Occupancy</label>
+                  <select
+                    value={editedData.occupancy || ''}
+                    onChange={(e) => handleChange("occupancy", e.target.value)}
+                    className={`w-full border px-3 py-2 rounded-md ${
+                      validationErrors.occupancy ? 'border-red-500' : 'border-gray-300'
+                    }`}
+                  >
+                    <option value="">Select Occupancy</option>
+                    <option value="Rented">Rented</option>
+                    <option value="Occupied">Occupied</option>
+                    <option value="Unoccupied">Unoccupied</option>
+                  </select>
+                  {validationErrors.occupancy && <p className="text-red-500 text-sm mt-1">{validationErrors.occupancy}</p>}
+                </div>
+              </div>
+      
+              {/* Owner Details */}
+              <div className="mb-4 p-3 border rounded-md bg-gray-50">
+                <div className="font-semibold text-lg mb-3">Owner Details</div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {["name", "email", "phone", "address"].map((field) => (
+                    <div key={field}>
+                      <label className="block mb-1 text-sm text-gray-700 capitalize">{field}</label>
+                      <input
+                        type={field === "email" ? "email" : field === "phone" ? "tel" : "text"}
+                        value={editedData.owner?.[field] || ''}
+                        onChange={(e) => handleOwnerChange(field, e.target.value)}
+                        className={`w-full border px-3 py-2 rounded-md ${
+                          validationErrors[`owner${field.charAt(0).toUpperCase() + field.slice(1)}`]
+                            ? 'border-red-500'
+                            : 'border-gray-300'
+                        }`}
+                      />
+                      {validationErrors[`owner${field.charAt(0).toUpperCase() + field.slice(1)}`] && (
+                        <p className="text-red-500 text-sm mt-1">
+                          {validationErrors[`owner${field.charAt(0).toUpperCase() + field.slice(1)}`]}
+                        </p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+      
+              {/* Resident Details (if rented) */}
+              {editedData.occupancy === 'Rented' && (
+                <div className="mb-6 p-4 border rounded-md bg-gray-50">
+                  <div className="font-semibold text-lg mb-3">Resident Details</div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {["name", "email", "phone", "address"].map((field) => (
+                      <div key={field}>
+                        <label className="block mb-1 text-sm text-gray-700 capitalize">{field}</label>
+                        <input
+                          type={field === "email" ? "email" : field === "phone" ? "tel" : "text"}
+                          value={editedData.resident?.[field] || ''}
+                          onChange={(e) => handleResidentChange(field, e.target.value)}
+                          className={`w-full border px-3 py-2 rounded-md ${
+                            validationErrors[`resident${field.charAt(0).toUpperCase() + field.slice(1)}`]
+                              ? 'border-red-500'
+                              : 'border-gray-300'
+                          }`}
+                        />
+                        {validationErrors[`resident${field.charAt(0).toUpperCase() + field.slice(1)}`] && (
+                          <p className="text-red-500 text-sm mt-1">
+                            {validationErrors[`resident${field.charAt(0).toUpperCase() + field.slice(1)}`]}
+                          </p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+            {!isNewFlat && (
+              <div className="flex items-center gap-2 mt-4">
+                <input
+                  type="checkbox"
+                  id="confirm-edit"
+                  checked={isConfirmed}
+                  onChange={() => setIsConfirmed(!isConfirmed)}
+                  className="h-4 w-4 text-blue-600 border-gray-300 rounded"
+                />
+                <label htmlFor="confirm-edit" className="text-sm text-gray-700">
+                  I confirm that the above details are correct
+                </label>
+              </div>
+            )}
+
+            {serverError && (
+              <div className="bg-red-100 text-red-700 border border-red-400 px-4 py-2 rounded-md mt-4">
+                {serverError}
+              </div>
+            )}
+
+
+            <div className="flex justify-end mt-6 space-x-4">
+              <button
+                onClick={() => {
+                  setShowModal(false);
+                  setValidationErrors({});
+                }}
+                className="bg-gray-400 hover:bg-gray-500 text-white px-5 py-2 rounded-md"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={saveAllData}
+                disabled={!isNewFlat && !isConfirmed}
+                className={`px-5 py-2 rounded-md font-medium transition ${
+                  isNewFlat || isConfirmed
+                    ? 'bg-teal-600 hover:bg-teal-700 text-white'
+                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                }`}
+              >
+                {isNewFlat ? "Create Flat" : "Save Changes"}
+              </button>
+            </div>
+          </div>
+        </div>
+        )}
+      </div>
+      
     );
 };
 

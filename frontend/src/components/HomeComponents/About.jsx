@@ -2,19 +2,19 @@ import { motion } from "framer-motion";
 
 const About = () => {
   return (
-    <div className="mx-auto max-w-7xl px-6 lg:px-12 py-10 space-y-16">
+    <div className="mx-auto px-6 lg:px-12 py-10 space-y-16 lg:-mt-24">
       {/* Header */}
       <motion.h1
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8 }}
-        className="w-full text-center font-bold text-4xl bg-gray-100 text-gray-800 py-3 rounded-xl shadow-lg"
+        className="w-full text-center  bg-gray-500 text-white pb-2 rounded-xl shadow-lg"
       >
-        About Us
+        <span className="font-bold text-3xl">ABOUT US</span>
       </motion.h1>
 
       {/* Main Content */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start mt-6">
         {/* Left: Our Story */}
         <motion.div
           initial={{ opacity: 0, x: -40 }}

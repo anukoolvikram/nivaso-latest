@@ -9,23 +9,25 @@ const Sidebar = ({ currentPage, onPageChange }) => {
     navigate('/');
   }
 
-  const residentPages = ["Noticeboard", "Community", "Complaints"];
-  // const federationPages = ["Society Setup", "Noticeboard", "Community", "Complaints"];
-  const federationPages = ["Society Setup"];
-  const societyPages = ["Flat Setup", "Noticeboard", "Community", "Complaints"];
+  const federationPages = ["Society Setup", "Noticeboard"];
+  const societyPages = ["Flat Setup", "Noticeboard", "Community", "Complaints", "Documents"];
+  const residentPages = ["Profile","Noticeboard", "Community", "Complaints"];
 
   const pagesToShow = user_type === "resident" ? residentPages : user_type==="federation"? federationPages : societyPages;
 
   return (
-    <div style={{ backgroundColor: '#42A8B4' }} className="w-1/5 min-h-screen text-white p-4 flex flex-col gap-4">
-      <img src="/nivaso_logo.jpg" alt="Nivaso Logo" onClick={handleLogoClick} className="cursor-pointer mb-4" />
+    <div 
+      style={{ backgroundColor: '#42A8B4' }} 
+      className="w-1/5 min-h-screen text-white flex flex-col gap-3 px-1"
+    >
+      <img src="/nivasoLogo2.jpg" alt="Nivaso Logo" onClick={handleLogoClick} className="p-2 cursor-pointer mb-4 mt-2" />
 
       {pagesToShow.map((page) => (
         <button
           key={page}
-          className={`py-2 px-4 rounded text-left transition-all ${
+          className={`py-2 px-4 text-left transition-all ${
             currentPage === page
-              ? 'bg-blue-600 font-semibold'
+              ? 'bg-white font-semibold text-black'
               : 'hover:bg-gray-700'
           }`}
           onClick={() => onPageChange(page)}

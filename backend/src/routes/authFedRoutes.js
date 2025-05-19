@@ -61,10 +61,12 @@ router.post("/register", async (req, res) => {
 
         // Insert User
         const userResult = await client.query(
-            "INSERT INTO federation (email, password, is_federation, name, apartment, tenement, federation_code) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING primary_id",
+            "INSERT INTO federation (email, password, is_federation, name, apartment, tenement, federation_code) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *",
             [email, hashedPassword, isFederation, name, apartment, tenement, federation_code]
         );
-        const primary_id = userResult.rows[0].primary_id;
+        // console.log('heey')
+        // console.log(userResult.rows[0])
+        const primary_id = userResult.rows[0].id;
 
         // Create Societies
         const no_of_apartment = parseInt(apartment);
@@ -153,10 +155,13 @@ router.post("/login", async (req, res) => {
             return res.status(401).json({ error: "Invalid credentials" });
         }
 
+        // console.log('hhhhhhhhhh')
+        // console.log(user.rows[0].id)
         const token = jwt.sign(
-            { id: user.rows[0].primary_id }, 
+            { id: user.rows[0].id }, 
             SECRET_KEY, 
-            { expiresIn: "1h" });
+            { expiresIn: "1d" });
+
 
         // console.log(token)
         res.status(200).json({ 

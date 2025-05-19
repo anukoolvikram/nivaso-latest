@@ -4,6 +4,7 @@ import Sidebar from '../../components/Sidebar/Sidebar';
 import ResidentNoticeboard from '../../components/ResidentDashboard/ResidentNoticeboard';
 import ResidentCommunity from '../../components/ResidentDashboard/ResidentCommunity';
 import ResidentComplaints from '../../components/ResidentDashboard/ResidentComplaints';
+import ResidentProfile from '../../components/ResidentDashboard/ResidentProfile';
 
 
 const ResidentDashboard = () => {
@@ -36,18 +37,18 @@ const ResidentDashboard = () => {
     <div className="flex min-h-screen">
       <Sidebar currentPage={currentPage} onPageChange={setCurrentPage} />
       <div className="w-4/5 p-8">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-3xl font-bold">{currentPage}</h2>
+      <div className="flex justify-between items-center mb-4 -mt-2">
+        <div className="text-4xl font-semibold mb-6 text-gray-700">{currentPage}</div>
           <div>
             <button
               onClick={()=>{navigate('/')}}
-              className="bg-green-500 hover:bg-blue-600 text-white font-semibold px-4 py-2 rounded"
+              className="bg-gray-800 hover:bg-gray-700 text-white font-medium px-4 py-2 rounded-md shadow-sm transition-colors duration-200"
             >
               Home
             </button>
             <button
               onClick={handleLogout}
-              className="bg-red-500 hover:bg-blue-600 text-white font-semibold px-4 py-2 rounded"
+              className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium px-4 py-2 rounded-md shadow-sm transition-colors duration-200"
             >
               Logout
             </button>
@@ -55,6 +56,11 @@ const ResidentDashboard = () => {
         </div>
 
         {/* Page-specific content */}
+        {currentPage === "Profile" && (
+          <div className="text-gray-700">
+            <ResidentProfile/>
+          </div>
+        )}
         {currentPage === "Noticeboard" && (
           <div className="text-gray-700">
             <ResidentNoticeboard/>
