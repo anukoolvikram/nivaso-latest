@@ -1,2 +1,56 @@
 @import "tailwindcss";
-@import "bootstrap/dist/css/bootstrap.min.css";
+
+@font-face {
+    font-family: Cormorant;
+    src: url('../src/assets/fonts/CormorantUpright-Regular.ttf');
+}
+@font-face {
+    font-family: Candal;
+    src: url('../src/assets/fonts/Candal-Regular.ttf');
+}
+@font-face {
+    font-family: Barlow;
+    src: url('../src/assets/fonts/BarlowSemiCondensed-Regular.ttf');
+}
+@font-face {
+    font-family: BarlowRegular;
+    src: url('../src/assets/fonts/Barlow-Regular.ttf');
+}
+@font-face {
+    font-family: Montserrat;
+    src: url('../src/assets/fonts/Montserrat.ttf');
+}
+@font-face {
+    font-family: Inter;
+    src: url('../src/assets/fonts/Inter-VariableFont.ttf');
+}
+@theme{
+    --font-cormorant:Cormorant, 'sans-serif';
+    --font-candal:Candal, 'sans-serif';
+    --font-barlow:Barlow, 'sans-serif';
+    --font-barlow-regular: BarlowRegular, 'sans-serif';
+    --font-montserrat: Montserrat, 'sans-serif';
+    --font-inter: Inter, 'sans-serif';
+
+    --color-tan: #D2B68A;
+    --color-linen: #FEF4E8;
+    --color-navy: #1A234F;
+    --color-my-gray: #CED5DB;
+    --color-navy-dark: #1F2937;
+    --color-light-gray: #6B7280;
+    --color-purple: #402945;
+    --color-purplegray: #E5E7EB;
+    --color-dark-gray: #4B5563;
+    --color-gray700: #374151;
+    --color-gray900: #111827;
+    --color-gray200: #F9FAFB;
+    --color-gray100: #D1D5DB;
+}
+
+
+@layer utilities {
+  .bg-hero {
+    @apply bg-cover bg-center;
+    background-image: url('../src/assets/images/bg.jpg');
+  }
+}

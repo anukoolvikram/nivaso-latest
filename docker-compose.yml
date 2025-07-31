@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database Service
+  db:
+    image: postgres:15-alpine
+    restart: always
+    env_file:
+      - ./.env  # Loads POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_DB
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  # Backend Service (Express)
+  backend:
+    build: ./backend
+    restart: always
+    env_file:
+      - ./.env  # Loads all variables from .env file
+    ports:
+      - '3000:3000'
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    depends_on:
+      - db
+    environment:
+      # This line constructs the database URL using variables from the .env file
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+
+  # Frontend Service (Vite)
+  frontend:
+    build: ./frontend
+    restart: always
+    env_file:
+      - ./.env  # Loads VITE_CLOUDINARY_UPLOAD_PRESET
+    ports:
+      - '5173:5173'
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    depends_on:
+      - backend
+    environment:
+      # This variable tells your frontend how to reach the backend container
+      VITE_API_BASE_URL: http://localhost:3000
+
+# Defines the named volume for persisting database data
+volumes:
+  postgres_data:

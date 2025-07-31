@@ -1,0 +1,13 @@
+export const ArrowDown = () => (
+  <svg width="36" height="36" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" fill="#CED5DB">
+    <path d="M14 20l10 10 10-10z" />
+    <path d="M0 0h48v48H0z" fill="none" />
+  </svg>
+);
+
+export const ArrowUp = () => (
+  <svg width="36" height="36" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" fill="#CED5DB">
+    <polygon points="14,28 24,18 34,28" />
+    <rect fill="none" width="48" height="48" />
+  </svg>
+);

@@ -1,0 +1,166 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Federation {
+  id              Int       @id @default(autoincrement())
+  name            String
+  email           String    @unique
+  password        String
+  federation_code String    @unique
+  apartment_count Int       @default(0)
+  tenement_count  Int       @default(0)
+  societies Society[]
+}
+
+model Society {
+  id              Int       @id @default(autoincrement())
+  name            String?
+  email           String?   @unique
+  password        String?
+  society_code    String    @unique
+  society_type    String
+  wing_count      Int?
+  floors_per_wing Int?
+  rooms_per_floor Int?
+  federation_code String
+  federation      Federation @relation(fields: [federation_code], references: [federation_code], onDelete: Cascade)
+  residents       Resident[]
+  flats           Flat[]
+}
+
+model Resident {
+  id               Int       @id @default(autoincrement())
+  name             String
+  email            String    @unique
+  phone            String?   @unique
+  password         String?
+  initial_password String?
+  is_owner         Boolean?
+  address          String?
+  society_code     String
+  flat_id          String
+  created_at       DateTime  @default(now())
+  society          Society   @relation(fields: [society_code], references: [society_code], onDelete: Cascade)
+  complaints       Complaint[]
+  poll_votes       PollVote[]
+  owned_flats      Flat[]    @relation("OwnerFlats")
+  resided_flats    Flat[]    @relation("ResidentFlats")
+  responses        ComplaintResponse[]
+}
+
+model Flat {
+  id               Int      @id @default(autoincrement())
+  flat_number      String
+  society_code     String
+  occupancy_status String?
+  owner_id         Int?
+  resident_id      Int?
+  society          Society   @relation(fields: [society_code], references: [society_code], onDelete: Cascade)
+  owner            Resident? @relation("OwnerFlats", fields: [owner_id], references: [id])
+  resident         Resident? @relation("ResidentFlats", fields: [resident_id], references: [id])
+  attachments      Attachment[]
+}
+
+model Blog {
+  id           Int       @id @default(autoincrement())
+  title        String
+  content      String?
+  society_code String?
+  created_at   DateTime  @default(now())
+  author_id    Int
+  author_type  String       // society, resident
+  attachments  Attachment[]
+  tags         Tag[]        @relation("BlogTags")
+}
+
+model Notice {
+  id              Int       @id @default(autoincrement())
+  title        String
+  content      String?
+  society_code String?
+  is_approved  Boolean   @default(true)
+  created_at   DateTime  @default(now())
+  type         String       //Notice, Announcement, Poll, Lost and Found
+  author_id    Int
+  author_type  String       // federation, society, resident
+  attachments   Attachment[]
+  poll_options  PollOption[]
+  votes        PollVote[]
+}
+
+model PollOption {
+  id           Int       @id @default(autoincrement())
+  option_text  String
+  notice_id    Int
+  notice       Notice     @relation(fields: [notice_id], references: [id], onDelete: Cascade)
+  votes        PollVote[]
+}
+
+model PollVote {
+  id           Int         @id @default(autoincrement())
+  option_id    Int
+  resident_id  Int
+  notice_id    Int
+  option       PollOption  @relation(fields: [option_id], references: [id], onDelete: Cascade)
+  resident     Resident    @relation(fields: [resident_id], references: [id], onDelete: Cascade)
+  notice       Notice     @relation(fields: [notice_id], references: [id], onDelete: Cascade)
+  @@unique([resident_id, notice_id])
+}
+
+model Tag {
+  id      Int     @id @default(autoincrement())
+  name    String  @unique
+  blogs   Blog[]   @relation("BlogTags")
+}
+
+model Attachment {
+  id              Int       @id @default(autoincrement())
+  file_path       String
+  original_name   String
+  mime_type       String
+  created_at      DateTime   @default(now())
+  owner_type      String    // 'blog', 'notice', 'complaint', 'society' 
+  blog_id         Int?
+  blog            Blog?      @relation(fields: [blog_id], references: [id], onDelete: Cascade)
+  notice_id       Int?
+  notice          Notice?    @relation(fields: [notice_id], references: [id], onDelete: Cascade)
+  complaint_id    Int?
+  complaint       Complaint? @relation(fields: [complaint_id], references: [id], onDelete: Cascade)
+  flat_id         Int?
+  flat            Flat?      @relation(fields: [flat_id], references: [id], onDelete: Cascade)
+}
+
+model Complaint {
+  id              Int        @id @default(autoincrement())
+  title           String
+  content         String
+  complaint_type  String
+  status          String
+  is_anonymous    Boolean    @default(false)
+  deadline_date   DateTime?  @db.Date
+  comment         String?
+  society_code    String
+  created_at      DateTime   @default(now())
+  updated_at      DateTime   @updatedAt
+  resident_id     Int
+  resident        Resident   @relation(fields: [resident_id], references: [id], onDelete: Cascade)
+  attachments     Attachment[]
+  responses       ComplaintResponse[]
+}
+
+model ComplaintResponse {
+  id              Int      @id @default(autoincrement())
+  text            String   @db.Text
+  created_at      DateTime @default(now())
+  complaint_id    Int
+  complaint       Complaint @relation(fields: [complaint_id], references: [id])
+  author_id       Int
+  author          Resident @relation(fields: [author_id], references: [id])
+}
+
