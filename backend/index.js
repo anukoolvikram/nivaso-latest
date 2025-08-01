@@ -25,5 +25,10 @@ app.use('/api/v1/complaint', complaintRoutes);
 app.use('/api/v1/notice', noticeRoutes);
 app.use('/api/v1/document', documentRoutes);
 
+app.get("/health", (req, res) => {
+    console.log("Health check ping received!");
+    res.status(200).send("OK");
+})
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
