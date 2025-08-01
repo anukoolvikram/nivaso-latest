@@ -12,7 +12,7 @@ import {
   LogoutLight, LogoutDark
 } from '../../assets/icons/SidebarIcons';
 
-const Sidebar = ({ currentPage, onPageChange, role }) => {
+const Sidebar = ({ currentPage, onPageChange, role, onLogoutClick }) => {
   const navigate = useNavigate();
   const [hoveredPage, setHoveredPage] = useState(null);
   const [isHomeHovered, setIsHomeHovered] = useState(false);
@@ -31,13 +31,7 @@ const Sidebar = ({ currentPage, onPageChange, role }) => {
     "Society Setup": { active: DatabaseDark, inactive: DatabaseLight },
     "Profile": { active: ProfileDark, inactive: ProfileLight },
   };
-
   const handleLogoClick = () => navigate('/');
-  const handleLogout = () => {
-    localStorage.clear();
-    navigate('/');
-  };
-
   const HomeIcon = isHomeHovered ? HomeDark : HomeLight;
   const LogoutIcon = isLogoutHovered ? LogoutDark : LogoutLight;
 
@@ -100,7 +94,7 @@ const Sidebar = ({ currentPage, onPageChange, role }) => {
 
         {/* Logout Button */}
         <div
-          onClick={handleLogout}
+          onClick={onLogoutClick}
           onMouseEnter={() => setIsLogoutHovered(true)}
           onMouseLeave={() => setIsLogoutHovered(false)}
           className="flex items-center p-2 rounded hover:cursor-pointer text-white hover:bg-red-600 transition-colors duration-200"

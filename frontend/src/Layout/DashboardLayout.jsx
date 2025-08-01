@@ -2,12 +2,12 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../components/Sidebar/Sidebar';
+import LogoutConfirmationDialog from '../components/Dialogs/Logout';
 
 const DashboardLayout = ({ pageConfig, role, defaultPage }) => {
     const navigate = useNavigate();
-    const [currentPage, setCurrentPage] = useState(
-        () => localStorage.getItem('currentDashboardPage') || defaultPage
-    );
+    const [currentPage, setCurrentPage] = useState(() => localStorage.getItem('currentDashboardPage') || defaultPage);
+    const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
 
     useEffect(() => {
         const token = localStorage.getItem('token');
@@ -19,6 +19,21 @@ const DashboardLayout = ({ pageConfig, role, defaultPage }) => {
     useEffect(() => {
         localStorage.setItem('currentDashboardPage', currentPage);
     }, [currentPage]);
+
+    const handleLogoutClick = () => {
+        setIsLogoutModalOpen(true);
+    };
+
+    const handleConfirmLogout = () => {
+        localStorage.removeItem('token');
+        localStorage.removeItem('currentDashboardPage');
+        setIsLogoutModalOpen(false);
+        navigate('/');
+    };
+
+    const handleCancelLogout = () => {
+        setIsLogoutModalOpen(false);
+    };
 
     const { title, subtitle } = useMemo(() => {
         const config = pageConfig[currentPage] || {};
@@ -36,6 +51,7 @@ const DashboardLayout = ({ pageConfig, role, defaultPage }) => {
                     currentPage={currentPage}
                     onPageChange={setCurrentPage}
                     role={role}
+                    onLogoutClick={handleLogoutClick}
                 />
             </div>
             
@@ -61,6 +77,12 @@ const DashboardLayout = ({ pageConfig, role, defaultPage }) => {
                     })}
                 </main>
             </div>
+
+            <LogoutConfirmationDialog
+                isOpen={isLogoutModalOpen}
+                onConfirm={handleConfirmLogout}
+                onCancel={handleCancelLogout}
+            />
         </div>
     );
 };

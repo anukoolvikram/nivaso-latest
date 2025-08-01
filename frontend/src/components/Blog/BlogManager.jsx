@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useToast } from '../../context/ToastContext';
 import { blogService } from '../../services/blogService';

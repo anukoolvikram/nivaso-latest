@@ -48,10 +48,17 @@ export default function FederationNoticeboard() {
   const handleFormSubmit = async (formData) => {
     setIsSubmitting(true);
     try {
-      const imageUrls = await Promise.all(
-        formData.newImages.map(uploadImageToCloudinary)
-      );
-      const finalImages = [...(formData.images || []), ...imageUrls];
+      // const imageUrls = await Promise.all(
+      //   formData.newImages.map(uploadImageToCloudinary)
+      // );
+      // const finalImages = [...(formData.images || []), ...imageUrls];
+      let finalImages = [...(formData.images || [])];
+      if (formData.newImages && formData.newImages.length > 0) {
+        const imageUrls = await Promise.all(
+          formData.newImages.map(uploadImageToCloudinary)
+        );
+        finalImages = [...finalImages, ...imageUrls];
+      }
       const payload = {
         title: formData.title,
         content: formData.content,

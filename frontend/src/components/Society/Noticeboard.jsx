@@ -1,8 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useToast } from '../../context/ToastContext';
-import { getTimeAgo } from '../../utils/dateUtil';
 import apiClient from '../../services/apiClient';
-import { noticeTypes } from '../../utils/noticeTypes';
 import { createNotice, updateNotice } from '../../services/noticeService';
 // Component
 import NoticeList from '../Notice/NoticeList';
