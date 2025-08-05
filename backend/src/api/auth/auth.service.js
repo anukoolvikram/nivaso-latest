@@ -56,19 +56,62 @@ const loginUser = async (userData) => {
 };
 
 const createSociety = async (societyData) => {
-  const { email, password, society_name, no_of_wings, floor_per_wing, rooms_per_floor, society_type } = societyData;
-  const normalizedEmail = normalizeEmail(email);
-  const federationCode = "FED17032025";
+  const providedFederationCode = "FED17032025"
+  const {
+    email,
+    password,
+    society_name,
+    no_of_wings,
+    floor_per_wing,
+    rooms_per_floor,
+    society_type, 
+  } = societyData;
 
+  const normalizedEmail = normalizeEmail(email);
+
+  // 1. First, perform all non-transactional, potentially slow work outside the transaction.
+  const hashedPassword = await hashPassword(password);
+  const society_code = await generateSocietyCode();
+
+  // 2. Start the transaction block
   return await prisma.$transaction(async (tx) => {
+    // 3. Check for existing society with the same email
     const existingSociety = await tx.society.findUnique({ where: { email: normalizedEmail } });
     if (existingSociety) {
       throw new Error("Email is already registered");
     }
 
-    const society_code = await generateSocietyCode();
-    const hashedPassword = await hashPassword(password);
+    let newFederation = null;
+    let finalFederationCode = providedFederationCode;
+    
+    // 4. Check if the provided federation code exists
+    let existingFederation = await tx.federation.findUnique({
+      where: { federation_code: providedFederationCode }
+    });
 
+    // 5. If the federation does not exist, create a new one.
+    if (!existingFederation) {
+      // The provided code will be used as the new federation code
+      // You may want to generate a new code if the provided one is invalid or empty
+      if (!providedFederationCode) {
+        finalFederationCode = await generateFederationCode();
+      }
+
+      newFederation = await tx.federation.create({
+        data: {
+          name: `Super Common Federation`, 
+          federation_code: finalFederationCode,
+          email: 'superCommonFederation@gmail.com',
+          password:'@anukoolvikramnivaso9119974803'
+        }
+      });
+      console.log(`New Federation created with code: ${newFederation.federation_code}`);
+      
+      // Update existingFederation for the rest of the logic
+      existingFederation = newFederation;
+    }
+    
+    // 6. Create the new society record
     const newSociety = await tx.society.create({
       data: {
         email: normalizedEmail,
@@ -79,16 +122,17 @@ const createSociety = async (societyData) => {
         rooms_per_floor,
         society_code,
         society_type,
-        federation_code: federationCode
+        federation_code: existingFederation.federation_code // Use the code of the found or newly created federation
       }
     });
 
+    // 7. Generate flat data and create records
     const flatsData = generateFlatsForSociety({ society_code, no_of_wings, floor_per_wing, rooms_per_floor });
-
     if (flatsData.length > 0) {
       await tx.flat.createMany({ data: flatsData });
     }
 
+    // 8. Generate and return the auth token
     const token = generateAuthToken({
       userId: newSociety.id,
       role: 'society',
@@ -98,6 +142,7 @@ const createSociety = async (societyData) => {
     return { message: "Society registration successful", token };
   });
 };
+
 
 const getUserInfo = (token) => {
   if (!token) throw new Error('Token is missing');
@@ -158,16 +203,36 @@ async function registerSociety(data) {
 async function registerFederation(data) {
   const { email, password, name, apartment, tenement } = data;
   const normalizedEmail = normalizeEmail(email);
+  const existingUser = await prisma.federation.findUnique({ where: { email: normalizedEmail } });
+  if (existingUser) {
+    throw new Error("Email already exists");
+  }
+  const hashedPassword = await hashPassword(password);
+  const federation_code = await generateFederationCode();
 
+  const societiesToCreate = [];
+  const no_of_apartment = parseInt(apartment);
+  for (let i = 0; i < no_of_apartment; i++) {
+    const societyCode = await generateSocietyCode();
+    societiesToCreate.push({
+      society_code: societyCode,
+      federation_code,
+      name: `Society_${i + 1}`,
+      society_type: 'Apartment'
+    });
+  }
+
+  const no_of_tenement = parseInt(tenement);
+  for (let i = 0; i < no_of_tenement; i++) {
+    const societyCode = await generateSocietyCode();
+    societiesToCreate.push({
+      society_code: societyCode,
+      federation_code,
+      name: `Society_${i + 1}`,
+      society_type: 'Tenement'
+    });
+  }
   return prisma.$transaction(async (tx) => {
-    const existingUser = await tx.federation.findUnique({ where: { email: normalizedEmail } });
-    if (existingUser) {
-      throw new Error("Email already exists");
-    }
-
-    const hashedPassword = await hashPassword(password);
-    const federation_code = await generateFederationCode();
-
     const newFederation = await tx.federation.create({
       data: {
         email: normalizedEmail,
@@ -179,28 +244,6 @@ async function registerFederation(data) {
       }
     });
 
-    const societiesToCreate = [];
-    const no_of_apartment = parseInt(apartment);
-    for (let i = 0; i < no_of_apartment; i++) {
-      const societyCode = await generateSocietyCode();
-      societiesToCreate.push({
-        society_code: societyCode,
-        federation_code,
-        name: `Society_${i + 1}`,
-        society_type: 'Apartment'
-      });
-    }
-
-    const no_of_tenement = parseInt(tenement);
-    for (let i = 0; i < no_of_tenement; i++) {
-      const societyCode = await generateSocietyCode();
-      societiesToCreate.push({
-        society_code: societyCode,
-        federation_code,
-        name: `Society_${i + 1}`,
-        society_type: 'Tenement'
-      });
-    }
     if (societiesToCreate.length > 0) {
       await tx.society.createMany({ data: societiesToCreate });
     }
