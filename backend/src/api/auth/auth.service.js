@@ -68,14 +68,9 @@ const createSociety = async (societyData) => {
   } = societyData;
 
   const normalizedEmail = normalizeEmail(email);
-
-  // 1. First, perform all non-transactional, potentially slow work outside the transaction.
   const hashedPassword = await hashPassword(password);
   const society_code = await generateSocietyCode();
-
-  // 2. Start the transaction block
   return await prisma.$transaction(async (tx) => {
-    // 3. Check for existing society with the same email
     const existingSociety = await tx.society.findUnique({ where: { email: normalizedEmail } });
     if (existingSociety) {
       throw new Error("Email is already registered");
@@ -83,16 +78,11 @@ const createSociety = async (societyData) => {
 
     let newFederation = null;
     let finalFederationCode = providedFederationCode;
-    
-    // 4. Check if the provided federation code exists
     let existingFederation = await tx.federation.findUnique({
       where: { federation_code: providedFederationCode }
     });
 
-    // 5. If the federation does not exist, create a new one.
     if (!existingFederation) {
-      // The provided code will be used as the new federation code
-      // You may want to generate a new code if the provided one is invalid or empty
       if (!providedFederationCode) {
         finalFederationCode = await generateFederationCode();
       }
@@ -106,12 +96,9 @@ const createSociety = async (societyData) => {
         }
       });
       console.log(`New Federation created with code: ${newFederation.federation_code}`);
-      
-      // Update existingFederation for the rest of the logic
       existingFederation = newFederation;
     }
     
-    // 6. Create the new society record
     const newSociety = await tx.society.create({
       data: {
         email: normalizedEmail,
@@ -122,23 +109,20 @@ const createSociety = async (societyData) => {
         rooms_per_floor,
         society_code,
         society_type,
-        federation_code: existingFederation.federation_code // Use the code of the found or newly created federation
+        federation_code: existingFederation.federation_code 
       }
     });
 
-    // 7. Generate flat data and create records
     const flatsData = generateFlatsForSociety({ society_code, no_of_wings, floor_per_wing, rooms_per_floor });
     if (flatsData.length > 0) {
       await tx.flat.createMany({ data: flatsData });
     }
 
-    // 8. Generate and return the auth token
     const token = generateAuthToken({
       userId: newSociety.id,
       role: 'society',
       society_code: newSociety.society_code
     });
-
     return { message: "Society registration successful", token };
   });
 };
