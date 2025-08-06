@@ -3,26 +3,32 @@
 @font-face {
     font-family: Cormorant;
     src: url('../src/assets/fonts/CormorantUpright-Regular.ttf');
+    font-display: swap;
 }
 @font-face {
     font-family: Candal;
     src: url('../src/assets/fonts/Candal-Regular.ttf');
+    font-display: swap;
 }
 @font-face {
     font-family: Barlow;
     src: url('../src/assets/fonts/BarlowSemiCondensed-Regular.ttf');
+    font-display: swap;
 }
 @font-face {
     font-family: BarlowRegular;
     src: url('../src/assets/fonts/Barlow-Regular.ttf');
+    font-display: swap;
 }
 @font-face {
     font-family: Montserrat;
     src: url('../src/assets/fonts/Montserrat.ttf');
+    font-display: swap;
 }
 @font-face {
     font-family: Inter;
     src: url('../src/assets/fonts/Inter-VariableFont.ttf');
+    font-display: swap;
 }
 @theme{
     --font-cormorant:Cormorant, 'sans-serif';

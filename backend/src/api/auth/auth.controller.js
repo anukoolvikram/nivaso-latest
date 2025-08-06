@@ -2,7 +2,6 @@ import { authService } from './auth.service.js';
 
 const registerUser = async (req, res) => {
     try {
-        console.log(req.body)
         const result = await authService.registerUser(req.body);
         res.status(201).json(result);
     } catch (error) {
