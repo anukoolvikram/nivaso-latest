@@ -6,7 +6,9 @@ const registerUser = async (req, res) => {
         res.status(201).json(result);
     } catch (error) {
         console.error('Error in registerUser controller:', error.message);
-        res.status(400).json({ error: error });
+        res.status(400).json({ 
+            body: req.body,
+            error: error.message });
     }
 };
 
