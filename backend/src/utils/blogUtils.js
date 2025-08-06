@@ -1,3 +1,5 @@
+import { prisma } from '../models/db.js'
+
 export const formatPrismaTags = (tags = []) => {
   return {
     connectOrCreate: tags.map((name) => ({
@@ -7,16 +9,6 @@ export const formatPrismaTags = (tags = []) => {
   };
 };
 
-// export const formatPrismaAttachments = (attachmentUrls = []) => {
-//   return {
-//     create: attachmentUrls.map((url) => ({
-//       file_path: url,
-//       original_name: 'image.jpg', 
-//       mime_type: 'image/jpeg',   
-//       owner_type: 'blog',
-//     })),
-//   };
-// };
 export const formatPrismaAttachments = (imageUrls = []) => {
   return {
       create: imageUrls.map((imageUrl) => ({

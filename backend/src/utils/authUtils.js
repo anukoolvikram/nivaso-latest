@@ -1,5 +1,6 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import { prisma } from '../models/db.js'
 const SECRET_KEY = process.env.JWT_SECRET;
 
 export const hashPassword = (password) => {
