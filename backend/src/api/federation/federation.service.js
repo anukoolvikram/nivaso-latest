@@ -1,4 +1,4 @@
-import { prisma } from '../../models/db.js';
+import prisma from '../../models/db.js';
 import bcrypt from 'bcryptjs';
 import { generateSocietyCode } from '../../utils/authUtils.js';
 

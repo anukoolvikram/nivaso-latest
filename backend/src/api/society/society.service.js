@@ -1,4 +1,4 @@
-import { prisma } from '../../models/db.js';
+import prisma from '../../models/db.js';
 import { generatePassword } from '../../utils/authUtils.js';
 import {
     hashPassword,

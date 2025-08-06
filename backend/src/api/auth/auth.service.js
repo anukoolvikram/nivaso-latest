@@ -1,4 +1,4 @@
-import { prisma } from '../../models/db.js';
+import prisma from '../../models/db.js';
 import jwt from 'jsonwebtoken';
 import {
   hashPassword,

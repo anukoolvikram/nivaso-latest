@@ -1,5 +1,5 @@
+import prisma from '../../models/db.js';
 import bcrypt from 'bcryptjs';
-import { prisma } from '../../models/db.js';
 
 const getProfileById = async (residentId) => {
   return prisma.resident.findUnique({
