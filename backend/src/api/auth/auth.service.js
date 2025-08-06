@@ -1,4 +1,6 @@
-import prisma from '../../models/db.js';
+import { PrismaClient } from '@prisma/client'
+const prisma = new PrismaClient()
+
 import jwt from 'jsonwebtoken';
 import {
   hashPassword,
