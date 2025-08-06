@@ -1,3 +1,4 @@
+// db.js
 import { PrismaClient } from '@prisma/client';
 
 let prisma;
@@ -10,4 +11,8 @@ if (process.env.NODE_ENV === 'production') {
   prisma = global.prisma;
 }
 
+// Named export
 export { prisma };
+
+// Default export
+export default prisma;
