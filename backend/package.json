@@ -5,10 +5,10 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
+    "build": "prisma generate && your-build-command",
     "start": "node index.js",
-    "dev": "nodemon index.js",
-    "migrate": "npx prisma migrate deploy",
-    "generate": "npx prisma generate"
+    "dev":"nodemon index.js",
+    "postinstall": "prisma generate"
   },
   "keywords": [],
   "author": "",

@@ -1,4 +1,4 @@
-import prisma from '../../models/db.js';
+import { prisma } from '../../models/db.js';
 
 const createSocietyDocument = async (data, societyId) => {
     const { title, url } = data;
