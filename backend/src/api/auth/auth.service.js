@@ -95,7 +95,6 @@ const createSociety = async (societyData) => {
           password:'@anukoolvikramnivaso9119974803'
         }
       });
-      console.log(`New Federation created with code: ${newFederation.federation_code}`);
       existingFederation = newFederation;
     }
     
