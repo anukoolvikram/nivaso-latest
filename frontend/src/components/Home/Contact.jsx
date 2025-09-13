@@ -36,25 +36,25 @@ const Contact = () => {
   };
 
   return (
-    <div className="relative bg-hero min-h-screen">
+    <div className="relative min-h-screen py-10">
       <div className="absolute inset-0 bg-black opacity-80 z-0" />
-      <div className="relative z-5 flex text-white p-10 pt-20">
-        <div className="w-2/3 px-10">
-          <div className="w-full font-cormorant text-3xl md:text-4xl mb-10">
+      <div className="relative z-5 flex flex-col md:flex-row text-white p-4 md:p-10">
+        <div className="w-full md:w-2/3 px-0 md:px-10 mb-10 md:mb-0">
+          <div className="w-full font-cormorant text-3xl md:text-4xl mb-6 md:mb-10">
             Get in touch!
           </div>
           <form
             onSubmit={handleSubmit}
-            className="flex flex-col gap-10 font-barlow text-lg"
+            className="flex flex-col gap-6 md:gap-10 font-barlow text-lg"
           >
-            <div className="flex space-x-8">
+            <div className="flex flex-col md:flex-row md:space-x-8 space-y-6 md:space-y-0">
               <input
                 name="name"
                 value={form.name}
                 onChange={handleChange}
                 type="text"
                 placeholder="Full Name"
-                className="w-1/2 border-b p-1"
+                className="w-full md:w-1/2 border-b p-2 bg-transparent"
                 required
               />
               <input
@@ -63,7 +63,7 @@ const Contact = () => {
                 onChange={handleChange}
                 type="email"
                 placeholder="E-Mail"
-                className="w-1/2 border-b p-1"
+                className="w-full md:w-1/2 border-b p-2 bg-transparent"
                 required
               />
             </div>
@@ -73,7 +73,7 @@ const Contact = () => {
               onChange={handleChange}
               type="text"
               placeholder="Subject"
-              className="w-full border-b p-1"
+              className="w-full border-b p-2 bg-transparent"
               required
             />
             <textarea
@@ -82,14 +82,14 @@ const Contact = () => {
               onChange={handleChange}
               rows={5}
               placeholder="Your message..."
-              className="w-full border p-1"
+              className="w-full border p-2 bg-transparent"
               required
             />
             <div>
               <button
                 type="submit"
                 disabled={sending}
-                className="bg-white text-black px-3 p-1 hover:cursor-pointer"
+                className="bg-white text-black px-6 py-2 hover:cursor-pointer disabled:opacity-50"
               >
                 {sending ? 'Sending…' : 'Send'}
               </button>
@@ -97,13 +97,13 @@ const Contact = () => {
           </form>
         </div>
 
-        <div className="mt-15 bg-tan w-2 h-64"></div>
+        <div className="hidden md:block mt-15 bg-tan w-2 h-64 mx-10"></div>
 
-        <div className="mt-15 px-10 h-full flex flex-col text-gray-200 text-lg justify-around gap-10">
+        <div className="mt-10 md:mt-15 px-0 md:px-10 h-full flex flex-col text-gray-200 text-sm md:text-lg justify-start md:justify-around gap-6 md:gap-10">
           <div className="underline">nivaso@gmail.com</div>
           <div>+91 8080104085</div>
           <div>
-            <div>RahulRahul Bajaj Technology</div>
+            <div>Rahul Bajaj Technology</div>
             <div>Innovation Center</div>
             <div>SINE IIT Bombay</div>
             <div>Powai, Mumbai - 400076</div>

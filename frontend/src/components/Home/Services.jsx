@@ -22,7 +22,7 @@ const services = [
 
 const Services = () => {
   return (
-    <div className="relative pt-10 bg-hero min-h-screen">
+    <div className="relative pt-10 min-h-screen">
       <div className="absolute inset-0 bg-black opacity-80 z-0" />
       {/* Main content */}
       <div className="relative z-10 p-10 text-white font-cormorant">
@@ -48,7 +48,7 @@ const ServicesCard = ({ title, description, button_text }) => {
   return (
     <div
       className="
-        w-3/5 sm:w-1/3 md:w-full
+        w-3/5 sm:w-1/3
         flex flex-col justify-around items-center
         text-white border-2 border-white
         gap-8 md:gap-10 p-4 sm:p-6 md:p-8

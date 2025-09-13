@@ -59,4 +59,11 @@
     @apply bg-cover bg-center;
     background-image: url('../src/assets/images/bg.jpg');
   }
+
+  .bg-hero-fixed {
+    background-image: url('../src/assets/images/bg.jpg');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed; 
+  }
 }

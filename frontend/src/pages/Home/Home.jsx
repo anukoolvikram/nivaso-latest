@@ -26,10 +26,10 @@ const Home = () => {
   };
 
   return (
-    <div className="">
+     <div className="bg-hero-fixed min-h-screen overflow-x-hidden">
       <Navbar sections={sections} activeSection={activeSection} onNavClick={handleNavClick}/>
         {sections.map(section => (
-          <div key={section} id={section}>
+          <div key={section} id={section} >
             {{
               home: <Hero/>,
               services: <Services />, 
