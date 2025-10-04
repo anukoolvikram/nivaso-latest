@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useToast } from '../../context/ToastContext';
-import apiClient from '../../services/apiClient';
+import axios from 'axios';
 
 const Contact = () => {
   const [form, setForm] = useState({
@@ -21,7 +21,7 @@ const Contact = () => {
   setSending(true);
 
   try {
-    const response = await apiClient.post('/contact/send-mail', form);
+    const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/contact/sendmail`, form);
 
     if (response.data.success) {
       showToast('Your message has been received by us!');

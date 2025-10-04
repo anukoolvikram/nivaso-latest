@@ -17,6 +17,7 @@ const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 
+
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/federation', federationRoutes);
 app.use('/api/v1/society', societyRoutes);
@@ -26,6 +27,7 @@ app.use('/api/v1/complaint', complaintRoutes);
 app.use('/api/v1/notice', noticeRoutes);
 app.use('/api/v1/document', documentRoutes);
 app.use('/api/v1/contact', contactRoutes);
+
 
 app.get("/health", (req, res) => {
     console.log("Health check ping received!");
