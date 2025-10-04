@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { useToast } from '../../context/ToastContext';
+import apiClient from '../../services/apiClient';
 
 const Contact = () => {
   const [form, setForm] = useState({
@@ -8,32 +10,34 @@ const Contact = () => {
     message: ''
   });
   const [sending, setSending] = useState(false);
+  const showToast = useToast();
 
   const handleChange = (e) => {
     setForm(f => ({ ...f, [e.target.name]: e.target.value }));
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setSending(true);
-    try {
-      const res = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/contact/contact`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(form)
-        }
-      );
-      if (!res.ok) throw new Error();
-      alert('Message sent!');
-      setForm({ name:'', email:'', subject:'', message:'' });
-    } catch {
-      alert('Failed to send. Try again later.');
-    } finally {
-      setSending(false);
+  e.preventDefault();
+  setSending(true);
+
+  try {
+    const response = await apiClient.post('/contact/send-mail', form);
+
+    if (response.data.success) {
+      showToast('Your message has been received by us!');
+      setForm({ name: '', email: '', subject: '', message: '' });
+    } else {
+      showToast('Failed to send message. Please try again.');
     }
-  };
+  } catch (error) {
+    console.error('Error:', error);
+    showToast('Something went wrong.');
+  } finally {
+    setSending(false);
+  }
+};
+
+
 
   return (
     <div className="relative min-h-screen py-10">
@@ -91,7 +95,7 @@ const Contact = () => {
                 disabled={sending}
                 className="bg-white text-black px-6 py-2 hover:cursor-pointer disabled:opacity-50"
               >
-                {sending ? 'Sending…' : 'Send'}
+                {sending ? 'Sending...' : 'Send'}
               </button>
             </div>
           </form>

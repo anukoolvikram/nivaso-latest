@@ -7,6 +7,7 @@ import blogRoutes from './src/api/blog/blog.routes.js'
 import complaintRoutes from './src/api/complaint/complaint.routes.js'
 import noticeRoutes from './src/api/notice/notice.routes.js'
 import documentRoutes from './src/api/document/document.routes.js'
+import contactRoutes from './src/api/contact/contact_routes.js'
 import cors from 'cors'
 import bodyParser from 'body-parser';
 import dotenv from 'dotenv';
@@ -24,6 +25,7 @@ app.use('/api/v1/blog', blogRoutes);
 app.use('/api/v1/complaint', complaintRoutes);
 app.use('/api/v1/notice', noticeRoutes);
 app.use('/api/v1/document', documentRoutes);
+app.use('/api/v1/contact', contactRoutes);
 
 app.get("/health", (req, res) => {
     console.log("Health check ping received!");
