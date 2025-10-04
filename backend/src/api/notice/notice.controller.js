@@ -1,5 +1,15 @@
 import { noticeService } from './notice.service.js';
 
+const saveDraft = async (req, res) => {
+  try {
+    const draft = await noticeService.saveDraft(req.body, req.user);
+    res.status(200).json(draft);
+  } catch (error) {
+    console.error('Failed to save draft:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
 const createNotice = async (req, res) => {
   try {
     const notice = await noticeService.createNotice(req.body, req.user);
@@ -115,6 +125,7 @@ const updateNotice = async (req, res) => {
 };
 
 export const noticeController = {
+  saveDraft,
   createNotice,
   getNoticesForUser,
   getNoticeUsingId,

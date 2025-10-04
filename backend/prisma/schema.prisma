@@ -89,6 +89,7 @@ model Notice {
   type         String       //Notice, Announcement, Poll, Lost and Found
   author_id    Int
   author_type  String       // federation, society, resident
+  status       String     @default("draft") // "draft", "published"
   attachments   Attachment[]
   poll_options  PollOption[]
   votes        PollVote[]

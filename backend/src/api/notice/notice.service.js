@@ -6,6 +6,46 @@ import {
   enrichNoticesWithAuthorInfo,
 } from '../../utils/noticeUtils.js';
 
+const saveDraft = async (noticeData, user) => {
+  const { title, content, type, poll_options = [], images = [], id } = noticeData;
+  const { userId: authorId, role, society_code } = user;
+
+
+  if (id) {
+    // update the draft
+    return prisma.notice.update({
+      where: { id: id },
+      data: {
+        title,
+        content,
+        type,
+        society_code,
+        poll_options: formatPrismaPollOptions(poll_options),
+        attachments: formatPrismaAttachments(images),
+      },
+      include: { poll_options: true, attachments: true },
+    });
+  } else {
+    // create new draft
+    return prisma.notice.create({
+      data: {
+        title,
+        content,
+        type,
+        author_id: authorId,
+        author_type: role,
+        society_code,
+        status: "draft",
+        is_approved: role === "society" || role === "federation",
+        poll_options: formatPrismaPollOptions(poll_options),
+        attachments: formatPrismaAttachments(images),
+      },
+      include: { poll_options: true, attachments: true },
+    });
+  }
+};
+
+
 const createNotice = async (noticeData, user) => {
   const { title, content, type, poll_options = [], images = [] } = noticeData;
   const { userId: authorId, role, society_code } = user;
@@ -135,6 +175,7 @@ const getNoticesForSociety = (societyCode) => prisma.notice.findMany({
 });
 
 export const noticeService = {
+  saveDraft,
   createNotice,
   getNoticesForUser,
   getNoticesUsingId,

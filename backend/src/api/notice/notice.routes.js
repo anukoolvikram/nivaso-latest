@@ -8,6 +8,7 @@ router.use(authMiddleware);
 router.get('/get', noticeController.getNoticesForUser);
 router.get('/get/:id', noticeController.getNoticeUsingId);
 router.post('/create', noticeController.createNotice);
+router.post('/saveDraft', noticeController.saveDraft);
 router.put('/update/:id', noticeController.updateNotice);
 router.get('/society/:societyCode', noticeController.getNoticesForSociety);
 router.post('/vote', noticeController.castVote);
