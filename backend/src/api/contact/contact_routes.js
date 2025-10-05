@@ -2,9 +2,14 @@ import express from 'express';
 import nodemailer from 'nodemailer';
 const router = express.Router();
 
+router.get('/hello', async(req, res)=>{
+  res.json({
+    message: "hello"
+  })
+});
+
 router.post('/sendmail', async (req, res) => {
   const { name, email, subject, message } = req.body;
-  console.log('Form data received:', req.body);
 
   try {
     const transporter = nodemailer.createTransport({
@@ -19,7 +24,7 @@ router.post('/sendmail', async (req, res) => {
 
     const mailOptions = {
       from: process.env.EMAIL_USER, 
-      to: 'nivaso.biz@gmail.com', 
+      to: 'anukoolvikram777@gmail.com', 
       subject: subject || 'No subject',
       text: `
         You have a new message:
