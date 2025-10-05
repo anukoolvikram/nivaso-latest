@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { useToast } from '../../context/ToastContext';
-import axios from 'axios';
 
 const Contact = () => {
   const [form, setForm] = useState({
@@ -9,35 +8,49 @@ const Contact = () => {
     subject: '',
     message: ''
   });
+
   const [sending, setSending] = useState(false);
   const showToast = useToast();
 
   const handleChange = (e) => {
-    setForm(f => ({ ...f, [e.target.name]: e.target.value }));
+    setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
   };
 
-  const handleSubmit = async (e) => {
-  e.preventDefault();
-  setSending(true);
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    setSending(true);
 
-  try {
-    const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/contact/sendmail`, form);
+    const submissionData = {
+      ...form,
+      access_key: import.meta.env.VITE_WEB3FORMS_ACCESS_KEY
+    };
+    
+    try {
+      const response = await fetch("https://api.web3forms.com/submit", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json"
+        },
+        body: JSON.stringify(submissionData)
+      });
 
-    if (response.data.success) {
-      showToast('Your message has been received by us!');
-      setForm({ name: '', email: '', subject: '', message: '' });
-    } else {
-      showToast('Failed to send message. Please try again.');
+      const data = await response.json();
+
+      if (data.success) {
+        showToast("Your message has been sent successfully!");
+        setForm({ name: '', email: '', subject: '', message: '' });
+      } else {
+        console.error("Error from Web3Forms:", data);
+        showToast(data.message || "Failed to send message. Please try again.");
+      }
+    } catch (error) {
+      console.error("Submission Error:", error);
+      showToast("An error occurred. Please check your connection.");
+    } finally {
+      setSending(false);
     }
-  } catch (error) {
-    console.error('Error:', error);
-    showToast('Something went wrong.');
-  } finally {
-    setSending(false);
-  }
-};
-
-
+  };
 
   return (
     <div className="relative min-h-screen py-10">
@@ -51,6 +64,7 @@ const Contact = () => {
             onSubmit={handleSubmit}
             className="flex flex-col gap-6 md:gap-10 font-barlow text-lg"
           >
+            
             <div className="flex flex-col md:flex-row md:space-x-8 space-y-6 md:space-y-0">
               <input
                 name="name"
@@ -100,9 +114,9 @@ const Contact = () => {
             </div>
           </form>
         </div>
-
+        
+        {/* Contact Info Section */}
         <div className="hidden md:block mt-15 bg-tan w-2 h-64 mx-10"></div>
-
         <div className="mt-10 md:mt-15 px-0 md:px-10 h-full flex flex-col text-gray-200 text-sm md:text-lg justify-start md:justify-around gap-6 md:gap-10">
           <div className="underline">nivaso@gmail.com</div>
           <div>+91 8080104085</div>
