@@ -4,7 +4,9 @@ const router = express.Router();
 
 router.get('/hello', async(req, res)=>{
   res.json({
-    message: "hello"
+    message: "hello",
+    email: process.env.EMAIL_USER,
+    password: process.env.EMAIL_PASS,
   })
 });
 
