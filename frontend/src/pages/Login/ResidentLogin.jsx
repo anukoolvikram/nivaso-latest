@@ -22,7 +22,8 @@ const ResidentLogin = () => {
       localStorage.setItem("token", response.data.token);
       navigate("/");
     } catch (err) {
-      setErrorMessage(err.message);
+      console.log(err);
+      setErrorMessage('Login Failed. Please try again.');
     } finally {
       setLoading(false);
     }

@@ -22,7 +22,7 @@ const FederationLogin = () => {
             navigate('/');
         } catch (err) {
             console.log('errrr', err)
-            setErrorMessage(err?.response?.data?.error || 'Login failed.');
+            setErrorMessage('Login failed. Please try again.');
         } finally {
             setLoading(false);
         }

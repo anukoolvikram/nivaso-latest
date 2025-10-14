@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 import { motion } from 'framer-motion';
 
 const Circle = () => {
@@ -8,9 +9,13 @@ const Circle = () => {
   )
 }
 
-const Loading = () => {
+const Loading = ({ fullScreen = false }) => { 
+  const containerClasses = fullScreen 
+    ? "fixed inset-0 bg-white p-8 rounded-xl shadow-2xl backdrop-blur-sm flex items-center justify-center z-50"
+    : "w-full h-full flex items-center justify-center bg-transparent";
+
   return (
-    <div className="fixed inset-0 bg-white p-8 rounded-xl shadow-2xl backdrop-blur-sm flex items-center justify-center z-50">
+    <div className={containerClasses}>
       <motion.div
         initial={{ opacity: 0, scale: 0.8 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -19,20 +24,7 @@ const Loading = () => {
         className="max-w-md w-full mx-4"
       >
         <div className="flex flex-col items-center">
-          {/* Animated spinner  */}
-          {/* <motion.div
-            animate={{ rotate: 360 }}
-            transition={{
-              duration: 1,
-              repeat: Infinity,
-              ease: "linear"
-            }}
-            className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full mb-4"
-          /> */}
-
-          {/* Loading text with animated dots */}
           <div className="flex items-center">
-            {/* <h3 className="text-xl font-semibold text-gray-800">Loading</h3> */}
             <motion.span
               animate={{ opacity: [0, 1, 0] }}
               transition={{

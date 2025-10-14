@@ -20,7 +20,8 @@ const SocietyLogin = () => {
             const response = await loginForAll(email, password, 'society');
             handleAuthSuccess(response.data, navigate);
         } catch (err) {
-            setError(err.response?.data?.error || 'Login failed.');
+            console.log(err);
+            setError('Login failed.');
         } finally {
             setLoading(false);
         }
@@ -34,7 +35,8 @@ const SocietyLogin = () => {
             const response = await apiCall(formData);
             handleAuthSuccess(response.data, navigate);
         } catch (err) {
-            setError(err.response?.data?.error || 'Registration failed.');
+            console.log(err);
+            setError('Registration failed. Please try again.');
         } finally {
             setLoading(false);
         }

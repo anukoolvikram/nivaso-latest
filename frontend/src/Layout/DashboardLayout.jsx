@@ -6,7 +6,10 @@ import LogoutConfirmationDialog from '../components/Dialogs/Logout';
 
 const DashboardLayout = ({ pageConfig, role, defaultPage }) => {
     const navigate = useNavigate();
-    const [currentPage, setCurrentPage] = useState(() => localStorage.getItem('currentDashboardPage') || defaultPage);
+    const [currentPage, setCurrentPage] = useState(() => {
+        const saved = localStorage.getItem(`currentDashboardPage_${role}`);
+        return saved || defaultPage;
+    });
     const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
 
     useEffect(() => {
@@ -17,8 +20,8 @@ const DashboardLayout = ({ pageConfig, role, defaultPage }) => {
     }, [navigate]);
 
     useEffect(() => {
-        localStorage.setItem('currentDashboardPage', currentPage);
-    }, [currentPage]);
+        localStorage.setItem(`currentDashboardPage_${role}`, currentPage);
+    }, [currentPage, role]);
 
     const handleLogoutClick = () => {
         setIsLogoutModalOpen(true);
@@ -26,7 +29,7 @@ const DashboardLayout = ({ pageConfig, role, defaultPage }) => {
 
     const handleConfirmLogout = () => {
         localStorage.removeItem('token');
-        localStorage.removeItem('currentDashboardPage');
+        localStorage.removeItem(`currentDashboardPage_${role}`);
         setIsLogoutModalOpen(false);
         navigate('/');
     };
@@ -34,7 +37,7 @@ const DashboardLayout = ({ pageConfig, role, defaultPage }) => {
     const handleCancelLogout = () => {
         setIsLogoutModalOpen(false);
     };
-    
+
     // Find the current page's configuration
     const { title, subtitle, Component: PageComponent } = pageConfig[currentPage] || {};
 
@@ -48,7 +51,7 @@ const DashboardLayout = ({ pageConfig, role, defaultPage }) => {
                     onLogoutClick={handleLogoutClick}
                 />
             </div>
-            
+
             <div className="flex-1 flex flex-col overflow-auto">
                 <header className="w-full border-b font-montserrat border-gray-200 bg-white px-4 py-2 sticky top-0 z-10">
                     <h1 className="text-xl font-bold text-navy-dark">{title || currentPage}</h1>
@@ -57,10 +60,6 @@ const DashboardLayout = ({ pageConfig, role, defaultPage }) => {
                     )}
                 </header>
                 <main className="flex-1 overflow-auto bg-gray-50">
-                    {/* ✅ --- CHANGE IS HERE --- ✅
-                      Render only the active PageComponent.
-                      This ensures the component unmounts when you switch tabs, resetting its state.
-                    */}
                     {PageComponent && <PageComponent />}
                 </main>
             </div>

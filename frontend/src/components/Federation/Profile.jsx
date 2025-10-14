@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import { IdentificationIcon, EnvelopeIcon, HomeModernIcon, UserGroupIcon, KeyIcon, BuildingOfficeIcon} from '@heroicons/react/24/outline';
 import { HiEye, HiEyeOff } from "react-icons/hi";
 import { useEffect, useState, useCallback } from 'react';
@@ -111,7 +112,9 @@ const FederationProfile = () => {
 
   if (loading) {
     return (
-      <Loading />
+      <div className="flex justify-center items-center min-h-64">
+        <Loading fullScreen={false} />
+      </div>
     );
   }
 
@@ -190,8 +193,8 @@ const FederationProfile = () => {
           </div>
         </div>
 
-        {/* Password Change */}
-        {/* {showPasswordModal && (
+        {/* Password Change Modal with Loading */}
+        {showPasswordModal && (
           <div className="fixed inset-0 z-50 bg-black/30 flex justify-center items-center backdrop-blur-sm">
             <div className="bg-white p-6 rounded-lg w-full max-w-md shadow-lg animate-fadeIn">
               <div className="flex justify-between items-center mb-4">
@@ -202,7 +205,7 @@ const FederationProfile = () => {
                 <button
                   onClick={handleCancelPasswordChange} 
                   disabled={isSaving}
-                  className="text-gray-500 hover:text-gray-700 focus:outline-none cursor-pointer"
+                  className="text-gray-500 hover:text-gray-700 focus:outline-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <CrossIcon/>
                 </button>
@@ -227,18 +230,24 @@ const FederationProfile = () => {
                         name={field}
                         value={passwordData[field]}
                         onChange={handlePasswordInputChange}
-                        className={`block w-full pl-10 pr-10 border rounded-md py-2 focus:outline-none focus:ring-0 ${passwordErrors[field] ? 'border-red-500' : 'border-gray-300'}`}
+                        disabled={isSaving}
+                        className={`block w-full pl-10 pr-10 border rounded-md py-2 focus:outline-none focus:ring-0 disabled:bg-gray-100 disabled:cursor-not-allowed ${
+                          passwordErrors[field] ? 'border-red-500' : 'border-gray-300'
+                        }`}
                       />
                       <button
                         type="button"
                         tabIndex="-1"
                         onClick={() => togglePasswordVisibility(key)}
-                        className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700"
+                        disabled={isSaving}
+                        className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         {visible ? <HiEye size={20} /> : <HiEyeOff size={20} />}
                       </button>
                     </div>
-                    {passwordErrors[field] && (<p className="text-red-600 text-sm mt-1">{passwordErrors[field]}</p>)}
+                    {passwordErrors[field] && (
+                      <p className="text-red-600 text-sm mt-1">{passwordErrors[field]}</p>
+                    )}
                   </div>
                 ))}
 
@@ -247,22 +256,41 @@ const FederationProfile = () => {
                     type="button"
                     onClick={handleCancelPasswordChange} 
                     disabled={isSaving}
-                    className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md"
+                    className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={isSaving}
-                    className={`flex items-center justify-center gap-2 px-5 py-2 text-white font-medium bg-navy rounded-md shadow-sm transition-colors ${isSaving ? 'opacity-70 cursor-not-allowed' : 'hover:bg-navy/80'}`}
+                    className={`flex items-center justify-center gap-2 px-5 py-2 text-white font-medium bg-navy rounded-md shadow-sm transition-colors duration-200 ${
+                      isSaving ? 'opacity-70 cursor-not-allowed' : 'hover:bg-navy/80'
+                    }`}
                   >
-                    {isSaving ? (<><CircularProgress size={18} color="inherit" /><span>Saving...</span></>) : 'Save Changes'}
+                    {isSaving ? (
+                      <>
+                        <CircularProgress size={18} color="inherit" />
+                        <span>Saving...</span>
+                      </>
+                    ) : (
+                      'Save Changes'
+                    )}
                   </button>
                 </div>
               </form>
+
+              {/* Loading overlay for the modal */}
+              {isSaving && (
+                <div className="absolute inset-0 bg-white bg-opacity-50 flex items-center justify-center rounded-lg">
+                  <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-md shadow-sm">
+                    <CircularProgress size={20} />
+                    <span className="text-sm text-gray-700">Updating password...</span>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
-        )} */}
+        )}
       </div>
     </div>
   );

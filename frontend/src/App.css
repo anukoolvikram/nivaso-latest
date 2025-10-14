@@ -2,32 +2,32 @@
 
 @font-face {
     font-family: Cormorant;
-    src: url('../src/assets/fonts/CormorantUpright-Regular.ttf');
+    src: url('/fonts/CormorantUpright-Regular.ttf');
     font-display: swap;
 }
 @font-face {
     font-family: Candal;
-    src: url('../src/assets/fonts/Candal-Regular.ttf');
+    src: url('/assets/fonts/Candal-Regular.ttf');
     font-display: swap;
 }
 @font-face {
     font-family: Barlow;
-    src: url('../src/assets/fonts/BarlowSemiCondensed-Regular.ttf');
+    src: url('/fonts/BarlowSemiCondensed-Regular.ttf');
     font-display: swap;
 }
 @font-face {
     font-family: BarlowRegular;
-    src: url('../src/assets/fonts/Barlow-Regular.ttf');
+    src: url('/fonts/Barlow-Regular.ttf');
     font-display: swap;
 }
 @font-face {
     font-family: Montserrat;
-    src: url('../src/assets/fonts/Montserrat.ttf');
+    src: url('/fonts/Montserrat.ttf');
     font-display: swap;
 }
 @font-face {
     font-family: Inter;
-    src: url('../src/assets/fonts/Inter-VariableFont.ttf');
+    src: url('/fonts/Inter-VariableFont.ttf');
     font-display: swap;
 }
 @theme{
@@ -57,11 +57,11 @@
 @layer utilities {
   .bg-hero {
     @apply bg-cover bg-center;
-    background-image: url('../src/assets/images/bg.jpg');
+    background-image: url('/images/bg.jpg');
   }
 
   .bg-hero-fixed {
-    background-image: url('../src/assets/images/bg.jpg');
+    background-image: url('/images/bg.jpg');
     background-size: cover;
     background-position: center;
     background-attachment: fixed; 

@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 import { useState, useEffect, useRef } from 'react';
 import ImageUploader from '../ImageUploader/ImageUploader';
@@ -13,10 +12,10 @@ const NoticeForm = ({
   notice,
   onSubmit,
   onCancel,
-  onAutoSave,
+  onFormDataChange,
   isSubmitting,
   noticeTypes,
-  userRole
+  userRole,
 }) => {
   const isEditing = Boolean(notice?.id);
   const [formData, setFormData] = useState({
@@ -28,35 +27,37 @@ const NoticeForm = ({
   });
   const [selectedImages, setSelectedImages] = useState([]);
   const [confirmUpdate, setConfirmUpdate] = useState(false);
-  const timeoutRef = useRef(null);
+  const hasUnsavedChanges = useRef(false);
+  const initialLoadRef = useRef(true);
 
   useEffect(() => {
-    if (isEditing) {
+    if (isEditing && notice) {
       setFormData({
+        id: notice.id,
         title: notice.title || '',
         content: notice.content || '',
         type: notice.type || '',
-        options: notice.options || [],
+        options: notice.poll_options || notice.options || [],
         images: notice.images || notice.attachments || [],
       });
     }
+    initialLoadRef.current = false;
   }, [notice, isEditing]);
 
-  // Auto-save draft when form data changes
+  // Notify parent component of form changes
   useEffect(() => {
-    if (!formData.title && !formData.content) return;
-    clearTimeout(timeoutRef.current);
-    timeoutRef.current = setTimeout(() => {
-      const draftData = {
-        ...formData,
-        is_draft: true,
-        ...(isEditing && { id: notice.id }),
-      };
-      onAutoSave(draftData);
-    }, 5000);
-    return () => clearTimeout(timeoutRef.current);
-  }, [formData, onAutoSave, isEditing, notice?.id]);
-
+    if (!initialLoadRef.current) {
+      const hasContent = !!(formData.title?.trim() || formData.content?.trim());
+      hasUnsavedChanges.current = hasContent;
+      
+      if (onFormDataChange) {
+        onFormDataChange({
+          ...formData,
+          id: notice?.id, // Pass the notice ID for updates
+        });
+      }
+    }
+  }, [formData, notice?.id, onFormDataChange]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -84,6 +85,7 @@ const NoticeForm = ({
       ...(selectedImages.length > 0 && { newImages: selectedImages }),
       ...(isEditing && { id: notice.id }),
     };
+    hasUnsavedChanges.current = false;
     onSubmit(submitData);
   };
 
@@ -93,14 +95,23 @@ const NoticeForm = ({
         <div>
           <h2 className="text-2xl font-bold text-gray900">{isEditing ? 'Edit Notice' : 'Create New Notice'}</h2>
           <p className="text-sm text-dark-gray font-medium">Share important information with your society members</p>
+          {hasUnsavedChanges.current && (
+            <p className="text-sm text-blue-600 font-medium mt-1">• You have unsaved changes (auto-saved as draft)</p>
+          )}
         </div>
         <div className="flex gap-4">
-          <button type="button" onClick={onCancel} className="border border-gray100 p-2 rounded-lg flex items-center gap-2 hover:bg-white">
+          <button
+            type="button"
+            onClick={onCancel}
+            className="border border-gray100 p-2 rounded-lg flex items-center gap-2 hover:bg-white"
+          >
             <CrossIcon2 />
             <span className="text-gray700 font-medium">Cancel</span>
           </button>
           <button type="submit" disabled={isSubmitting || (isEditing && !confirmUpdate)} className="border bg-navy text-white p-2 rounded-lg flex items-center justify-center gap-2 w-32 hover:bg-navy/80 disabled:opacity-50">
-            {isSubmitting ? <CircularProgress size={20} color="inherit" /> : (<><PublishIcon /><span>{isEditing ? 'Update' : 'Publish'}</span></>)}
+            {isSubmitting ? 
+            <CircularProgress size={20} color="inherit" /> 
+            : (<><PublishIcon /><span>{isEditing ? 'Update' : 'Publish'}</span></>)}
           </button>
         </div>
       </div>

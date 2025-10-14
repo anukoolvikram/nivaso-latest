@@ -5,8 +5,8 @@ import apiClient from '../../services/apiClient';
 import SocietyList from '../SocietyDatabase/SocietyList';
 import SocietyDetail from '../SocietyDatabase/SocietyDetailView';
 import SocietyModal from '../SocietyDatabase/SocietyModal';
-import DeleteDialog from '../DeleteDialog/DeleteDialog'
-
+import DeleteDialog from '../DeleteDialog/DeleteDialog';
+import Loading from '../../components/Loading/Loading'; // Import your Loading component
 
 export default function FederationSocietySetup() {
   const [societies, setSocieties] = useState([]);
@@ -16,6 +16,7 @@ export default function FederationSocietySetup() {
   const [isConfirmed, setIsConfirmed] = useState(false);
   const [loading, setLoading] = useState(false);
   const [loadingSocieties, setLoadingSocieties] = useState(true);
+  const [loadingDetail, setLoadingDetail] = useState(false); // New loading state for detail view
   const [serverError, setServerError] = useState("");
   const [validationErrors, setValidationErrors] = useState({});
   const [searchTerm, setSearchTerm] = useState("");
@@ -93,9 +94,13 @@ export default function FederationSocietySetup() {
     setServerError("");
   };
 
-  const handleViewDetails = (society) => {
+  const handleViewDetails = async (society) => {
+    setLoadingDetail(true);
+    // Simulate loading delay for better UX
+    await new Promise(resolve => setTimeout(resolve, 500));
     setSelectedSocietyDetail(society);
     setIsEditing(false);
+    setLoadingDetail(false);
   };
 
   const handleCloseModal = () => {
@@ -174,6 +179,15 @@ export default function FederationSocietySetup() {
     }
   };
 
+  // Main loading state for initial data fetch
+  if (loadingSocieties) {
+    return (
+      <div className="flex justify-center items-center min-h-64">
+        <Loading fullScreen={false} />
+      </div>
+    );
+  }
+
   return (
     <div className="rounded-xl font-montserrat font-medium">
       {isEditing && (
@@ -210,7 +224,14 @@ export default function FederationSocietySetup() {
         />
       )}
 
-      {!isEditing && selectedSocietyDetail && (
+      {/* Loading state for detail view */}
+      {loadingDetail && (
+        <div className="flex justify-center items-center min-h-64">
+          <Loading fullScreen={false} />
+        </div>
+      )}
+
+      {!isEditing && selectedSocietyDetail && !loadingDetail && (
         <SocietyDetail
           society={selectedSocietyDetail}
           onBack={() => setSelectedSocietyDetail(null)}

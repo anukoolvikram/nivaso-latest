@@ -1,4 +1,5 @@
-import { useEffect, useState, useCallback } from 'react';
+/* eslint-disable react/prop-types */
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useToast } from '../../context/ToastContext';
 import { PlusIcon } from '../../assets/icons/PlusIcon';
 import { EmptyNoticeIcon } from '../../assets/icons/EmptyNoticeIcon';
@@ -14,8 +15,7 @@ import DeleteDialog from '../DeleteDialog/DeleteDialog';
 
 const federation_notice_types = ['Announcement', 'Notice', 'General'];
 
-export default function FederationNoticeboard() {
-  // NEW: State to hold ALL notices (both drafts and published)
+export default function FederationNoticeboard() { 
   const [allNotices, setAllNotices] = useState([]);
   const [viewingNotice, setViewingNotice] = useState(null);
   const [showForm, setShowForm] = useState(false);
@@ -25,11 +25,19 @@ export default function FederationNoticeboard() {
   const [noticeToDeleteId, setNoticeToDeleteId] = useState(null);
   const showToast = useToast();
   const [showDrafts, setShowDrafts] = useState(false);
+  const [unsavedFormData, setUnsavedFormData] = useState(null);
+  const [currentDraftId, setCurrentDraftId] = useState(null);
+  const autoSaveTimeoutRef = useRef(null);
+
+  const formStateRef = useRef({ showForm, unsavedFormData });
+  useEffect(() => {
+    formStateRef.current = { showForm, unsavedFormData };
+  }, [showForm, unsavedFormData]);
 
   const fetchNotices = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await apiClient.get('/notice/get'); 
+      const res = await apiClient.get('/notice/get');
       setAllNotices(res.data || []);
     } catch (err) {
       console.error('Error fetching all notices:', err);
@@ -37,16 +45,130 @@ export default function FederationNoticeboard() {
     } finally {
       setLoading(false);
     }
-  }, [showToast]); 
+  }, [showToast]);
 
   useEffect(() => {
     fetchNotices();
   }, [fetchNotices]);
 
+  // Auto-save function
+  const handleAutoSave = useCallback(async (formData) => {
+    if (!formData || (!formData.title?.trim() && !formData.content?.trim())) {
+      return;
+    }
+    try {
+      const draftPayload = {
+        id: formData.id || currentDraftId,
+        title: formData.title || '',
+        content: formData.content || '',
+        type: formData.type || '',
+        poll_options: formData.type === 'poll' ? formData.options : [],
+        images: formData.images || [],
+        status: 'draft',
+      };
+      const savedDraft = await saveDraftNotice(draftPayload);
+      if (!currentDraftId) {
+        setCurrentDraftId(savedDraft.id);
+      }
+      setAllNotices(prevNotices => {
+        const existingIndex = prevNotices.findIndex(n => n.id === savedDraft.id);
+        if (existingIndex > -1) {
+          const updatedNotices = [...prevNotices];
+          updatedNotices[existingIndex] = savedDraft;
+          return updatedNotices;
+        }
+        return [savedDraft, ...prevNotices];
+      });
+      if (formData.title?.trim() || formData.content?.trim()) {
+        showToast('Draft saved automatically', 'info');
+      }
+    } catch (err) {
+      console.error('Auto-save failed', err);
+    }
+  }, [currentDraftId, showToast]);
+
+
+  const handleImmediateSave = useCallback(async () => {
+    if (!unsavedFormData || (!unsavedFormData.title?.trim() && !unsavedFormData.content?.trim())) {
+      return;
+    }
+    try {
+      const draftPayload = {
+        id: unsavedFormData.id || currentDraftId,
+        title: unsavedFormData.title || '',
+        content: unsavedFormData.content || '',
+        type: unsavedFormData.type || '',
+        poll_options: unsavedFormData.type === 'poll' ? unsavedFormData.options : [],
+        images: unsavedFormData.images || [],
+        status: 'draft',
+      };
+      const savedDraft = await saveDraftNotice(draftPayload);
+      if (!currentDraftId) {
+        setCurrentDraftId(savedDraft.id);
+      }
+      setAllNotices(prevNotices => {
+        const existingIndex = prevNotices.findIndex(n => n.id === savedDraft.id);
+        if (existingIndex > -1) {
+          const updatedNotices = [...prevNotices];
+          updatedNotices[existingIndex] = savedDraft;
+          return updatedNotices;
+        }
+        return [savedDraft, ...prevNotices];
+      });
+    } catch (err) {
+      console.error('Auto-save on tab switch failed', err);
+    }
+  }, [unsavedFormData, currentDraftId]);
+
+
+  const handleFormDataChange = useCallback((formData) => {
+    setUnsavedFormData(formData);
+    if (autoSaveTimeoutRef.current) {
+      clearTimeout(autoSaveTimeoutRef.current);
+    }
+    autoSaveTimeoutRef.current = setTimeout(() => {
+      handleAutoSave(formData);
+    }, 2000);
+  }, [handleAutoSave]);
+
+  
+  useEffect(() => {
+    const handleBeforeUnload = (e) => {
+      if (unsavedFormData && (unsavedFormData.title?.trim() || unsavedFormData.content?.trim())) {
+        handleAutoSave(unsavedFormData);
+        e.preventDefault();
+        e.returnValue = 'You have unsaved changes. Are you sure you want to leave?';
+        return e.returnValue;
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      if (autoSaveTimeoutRef.current) {
+        clearTimeout(autoSaveTimeoutRef.current);
+      }
+    };
+  }, [unsavedFormData, handleAutoSave]);
+
+
+  useEffect(() => {
+    return () => {
+      if (autoSaveTimeoutRef.current) {
+        clearTimeout(autoSaveTimeoutRef.current);
+      }
+      const { showForm: isFormVisible, unsavedFormData: dataToSave } = formStateRef.current;
+      if (isFormVisible && dataToSave && (dataToSave.title?.trim() || dataToSave.content?.trim())) {
+        console.log('Component is unmounting, saving draft...');
+        handleAutoSave(dataToSave);
+      }
+    };
+  }, [handleAutoSave]); 
+
 
   const displayedNotices = allNotices.filter(notice => {
     return showDrafts ? notice.status === 'draft' : notice.status !== 'draft';
   });
+
 
   const handleFormSubmit = async (formData) => {
     setIsSubmitting(true);
@@ -62,9 +184,8 @@ export default function FederationNoticeboard() {
         type: formData.type,
         poll_options: formData.type === 'poll' ? formData.options : [],
         images: finalImages,
-        is_draft: false, 
+        status: 'published'
       };
-      
       if (formData.id) {
         await updateNotice(formData.id, payload);
         showToast('Notice updated successfully!', 'success');
@@ -72,12 +193,13 @@ export default function FederationNoticeboard() {
         await createNotice(payload);
         showToast('Notice published successfully!', 'success');
       }
-
       setShowForm(false);
       setEditingNotice(null);
       setViewingNotice(null);
-      setShowDrafts(false); 
-      fetchNotices(); 
+      setUnsavedFormData(null);
+      setCurrentDraftId(null);
+      setShowDrafts(false);
+      fetchNotices();
     } catch (err) {
       console.error(err);
       showToast('Submission failed.', 'error');
@@ -86,23 +208,6 @@ export default function FederationNoticeboard() {
     }
   };
 
-  const handleDraftSave = async (draftData) => {
-    try {
-      const savedDraft = await saveDraftNotice(draftData);
-      setAllNotices(prevNotices => {
-          const existingIndex = prevNotices.findIndex(n => n.id === savedDraft.id);
-          if (existingIndex > -1) {
-              const updatedNotices = [...prevNotices];
-              updatedNotices[existingIndex] = savedDraft;
-              return updatedNotices;
-          }
-          return [...prevNotices, savedDraft];
-      });
-      showToast('Draft saved automatically', 'info');
-    } catch (err) {
-      console.error('Draft save failed', err);
-    }
-  };
 
   const handleDelete = useCallback(async () => {
     if (!noticeToDeleteId) return;
@@ -111,18 +216,49 @@ export default function FederationNoticeboard() {
       setAllNotices((prev) => prev.filter((n) => n.id !== noticeToDeleteId));
       showToast('Notice deleted', 'success');
       if (viewingNotice?.id === noticeToDeleteId) setViewingNotice(null);
+      if (currentDraftId === noticeToDeleteId) {
+        setCurrentDraftId(null);
+        setUnsavedFormData(null);
+      }
     } catch (error) {
       console.error('Delete failed:', error);
       showToast('Failed to delete notice', 'error');
     } finally {
       setNoticeToDeleteId(null);
     }
-  }, [showToast, viewingNotice?.id, noticeToDeleteId]);
+  }, [showToast, viewingNotice?.id, noticeToDeleteId, currentDraftId]);
+
+  const handleViewToggle = (isDraftView) => {
+    if (showForm && unsavedFormData && (unsavedFormData.title || unsavedFormData.content)) {
+      handleImmediateSave();
+    }
+    setShowDrafts(isDraftView);
+    setViewingNotice(null);
+  };
+
   
-  const handleViewToggle = (isDraftView) => { setShowDrafts(isDraftView); setViewingNotice(null); };
-  const handleShowCreateForm = useCallback(() => { setEditingNotice(null); setViewingNotice(null); setShowForm(true); }, []);
-  const handleEdit = useCallback((noticeToEdit) => { setEditingNotice(noticeToEdit); setViewingNotice(null); setShowForm(true); }, []);
-  const handleCancelForm = useCallback(() => { setShowForm(false); setEditingNotice(null); }, []);
+  const handleShowCreateForm = useCallback(() => {
+    setEditingNotice(null);
+    setViewingNotice(null);
+    setShowForm(true);
+    setUnsavedFormData(null);
+    setCurrentDraftId(null);
+  }, []);
+
+  const handleEdit = useCallback((noticeToEdit) => {
+    setEditingNotice(noticeToEdit);
+    setViewingNotice(null);
+    setShowForm(true);
+    setUnsavedFormData(null);
+    setCurrentDraftId(noticeToEdit.id);
+  }, []);
+
+  const handleCancelForm = useCallback(() => {
+    setShowForm(false);
+    setEditingNotice(null);
+    setUnsavedFormData(null);
+    setCurrentDraftId(null);
+  }, []);
 
   return (
     <div className="flex min-h-screen font-montserrat">
@@ -148,8 +284,11 @@ export default function FederationNoticeboard() {
             </div>
 
             <div className="space-y-4">
-              {loading ? ( <Loading /> ) 
-              : displayedNotices.length === 0 ? (
+              {loading ? (
+                <div className="flex justify-center items-center min-h-28">
+                  <Loading fullScreen={false} />
+                </div>
+              ) : displayedNotices.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-[60vh] text-center">
                   <EmptyNoticeIcon className="w-24 h-24 text-gray-300" />
                   <h3 className="mt-4 text-lg font-medium text-gray-700">{showDrafts ? 'No drafts found' : 'No notices found'}</h3>
@@ -177,7 +316,7 @@ export default function FederationNoticeboard() {
             notice={editingNotice}
             onCancel={handleCancelForm}
             onSubmit={handleFormSubmit}
-            onAutoSave={handleDraftSave}
+            onFormDataChange={handleFormDataChange}
             isSubmitting={isSubmitting}
             noticeTypes={federation_notice_types}
             userRole="federation"

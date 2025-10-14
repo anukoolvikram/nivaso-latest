@@ -10,9 +10,7 @@ const saveDraft = async (noticeData, user) => {
   const { title, content, type, poll_options = [], images = [], id } = noticeData;
   const { userId: authorId, role, society_code } = user;
 
-
   if (id) {
-    // update the draft
     return prisma.notice.update({
       where: { id: id },
       data: {
@@ -26,7 +24,6 @@ const saveDraft = async (noticeData, user) => {
       include: { poll_options: true, attachments: true },
     });
   } else {
-    // create new draft
     return prisma.notice.create({
       data: {
         title,
@@ -65,6 +62,7 @@ const createNotice = async (noticeData, user) => {
       is_approved: role === 'society' || role === 'federation',
       poll_options: formatPrismaPollOptions(poll_options),
       attachments: formatPrismaAttachments(images),
+      status: "published"
     },
     include: {
       poll_options: true,
@@ -112,6 +110,7 @@ const updateNotice = async (noticeId, noticeData, user) => {
       is_approved,
       author_type: user.role,
       author_id: user.userId,
+      status: 'published',
       attachments: {
         deleteMany: {},
         create: images.map(image => typeof image === 'string' ? 
