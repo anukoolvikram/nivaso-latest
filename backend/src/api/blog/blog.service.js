@@ -122,8 +122,19 @@ const deleteBlog = async (blogId) => {
 };
 
 const getBlogsBySociety = async (user) => {
+  let societyCode = user.society_code;
+  // Residents may not have society_code in JWT; resolve from Resident record
+  if (!societyCode && user.role === 'resident' && user.userId) {
+    const resident = await prisma.resident.findUnique({
+      where: { id: user.userId },
+      select: { society_code: true },
+    });
+    societyCode = resident?.society_code ?? null;
+  }
+  if (!societyCode) return hydrateBlogAuthors([], prisma);
+
   const blogs = await prisma.blog.findMany({
-    where: { society_code: user.society_code },
+    where: { society_code: societyCode },
     orderBy: { created_at: 'desc' },
     include: {
       tags: { select: { name: true } },

@@ -1,5 +1,5 @@
 /* eslint-disable react/prop-types */
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import ImageUploader from '../ImageUploader/ImageUploader';
 import { CrossIcon2 } from '../../assets/icons/CrossIcon';
 import { PublishIcon } from '../../assets/icons/PublishIcon';
@@ -9,23 +9,29 @@ import { CircularProgress } from '@mui/material';
 const TAGS = ['Event', 'Buy & Sell', 'Awareness', 'Advertisement'];
 
 const BlogForm = ({ blog, onSubmit, onCancel, isSubmitting }) => {
+    const isEditing = Boolean(blog?.id);
     const [title, setTitle] = useState(blog?.title || '');
     const [content, setContent] = useState(blog?.content || '');
     const [selectedTags, setSelectedTags] = useState(blog?.tags ? blog.tags.map(tag => tag.name) : []);
     const [selectedImages, setSelectedImages] = useState([]);
+    const [existingImages, setExistingImages] = useState(blog?.attachments?.map(a => a) || []);
+    const [confirmUpdate, setConfirmUpdate] = useState(false);
+
     const toggleTag = (tag) => {
         setSelectedTags(prev =>
             prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]
         );
     };
-    const [existingImages, setExistingImages] = useState(blog?.attachments?.map(a => a) || []);
 
     const handleRemoveExistingImage = (index) => {
         setExistingImages(prev => prev.filter((_, i) => i !== index));
-    }
+    };
 
     const handleSubmit = (e) => {
         e.preventDefault();
+        if (!title.trim() || !content.trim() || selectedTags.length === 0) {
+            return;
+        }
         onSubmit({
             title,
             content,
@@ -35,79 +41,67 @@ const BlogForm = ({ blog, onSubmit, onCancel, isSubmitting }) => {
         });
     };
 
-    const isDisabled = !title.trim() || !content.trim() || selectedTags.length === 0 || isSubmitting;
+    const isDisabled = !title.trim() || !content.trim() || selectedTags.length === 0 || isSubmitting || (isEditing && !confirmUpdate);
 
     return (
-        <div className="font-montserrat bg-black/0">
-            <div className="flex justify-between items-center">
-                {blog ?
-                    <div>
-                        <h2 className="text-2xl font-bold text-gray900">
-                            Edit Blog Post
-                        </h2>
-                    </div>
-                    :
-                    <div>
-                        <h2 className="text-2xl font-bold text-gray900">
-                            Create New Blog Post
-                        </h2>
-                        <p className="text-sm text-dark-gray font-medium">
-                            Share your thoughts with the community
-                        </p>
-                    </div>
-                }
-                <div className="flex gap-4">
-                    <button
-                        type="button"
-                        onClick={onCancel}
-                        className="border border-gray100 p-2 rounded-lg flex items-center gap-2 hover:bg-white"
+        <form onSubmit={handleSubmit} className="w-full pb-10">
+            {/* Header */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+                <div>
+                    <h2 className="text-2xl font-medium text-navy-dark">
+                        {isEditing ? 'Update Blog' : 'New Blog'}
+                    </h2>
+                    <p className="text-sm text-gray-500 font-medium">
+                        Share your thoughts with the community
+                    </p>
+                </div>
+                <div className="flex gap-3 w-full md:w-auto">
+                    <button 
+                        type="button" 
+                        onClick={onCancel} 
+                        className="flex-1 md:flex-none px-5 py-3 border border-gray-200 bg-white rounded-xl font-bold text-gray-600 flex items-center justify-center gap-2 hover:bg-gray-50 transition"
                     >
-                        <CrossIcon2 />
-                        <span className="text-gray700 font-medium">Cancel</span>
+                        <CrossIcon2 /> Cancel
                     </button>
-                    <button
-                        type="submit"
-                        onClick={handleSubmit}
-                        disabled={isDisabled}
-                        className="border bg-navy text-white p-2 rounded-lg flex items-center gap-2 hover:bg-navy/80 disabled:opacity-50"
+                    <button 
+                        type="submit" 
+                        disabled={isDisabled} 
+                        className="flex-1 md:flex-none px-8 py-3 bg-navy text-white rounded-xl font-bold flex items-center justify-center gap-2 shadow-xl shadow-navy/20 hover:bg-navy-dark disabled:opacity-50 transition"
                     >
-                        <PublishIcon />
-                        <span>{isSubmitting ? <CircularProgress size={20} color="inherit" /> : 'Publish'}</span>
+                        {isSubmitting ? (
+                            <CircularProgress size={20} color="inherit" />
+                        ) : (
+                            <>
+                                <PublishIcon /> {isEditing ? 'Update' : 'Post'}
+                            </>
+                        )}
                     </button>
                 </div>
             </div>
 
-            <form onSubmit={handleSubmit} className="mx-12 my-6 p-6 bg-white font-medium text-sm border border-purplegray rounded-lg space-y-6">
-                <div>
-                    <label htmlFor="blog-title" className="block text-gray-700">
-                        Blog Title <span className="text-red-400">*</span>
+            {/* Form Content */}
+            <div className="bg-white p-5 md:p-8 rounded-2xl border border-gray-100 shadow-sm space-y-6">
+                {/* Title */}
+                <div className="space-y-2">
+                    <label className="text-sm font-bold text-gray-700">
+                        Blog Title *
                     </label>
                     <input
                         type="text"
                         value={title}
                         onChange={(e) => setTitle(e.target.value)}
-                        placeholder="Enter blog title (max 100 chars)"
+                        placeholder="e.g., Community Garden Initiative"
                         maxLength={100}
                         required
-                        className="w-full p-2 px-4 text-gray700 border border-gray100 rounded-lg focus:ring-0 focus:outline-none"
+                        className="w-full p-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-navy/10 outline-none transition-all"
                     />
+                    <p className="text-xs text-gray-500">{title.length}/100 characters</p>
                 </div>
 
-                <div>
-                    <label htmlFor="blog-content" className="block text-gray-700">
-                        Content <span className="text-red-400">*</span>
-                    </label>
-                    <TextEditor
-                        id="blog-content"
-                        value={content}
-                        onChange={(newContent) => setContent(newContent)}
-                        placeholder="Write your blog content here..."
-                    />
-                </div>
-
+                {/* Tags */}
                 <div className="space-y-2">
-                    <label className="block text-gray-700">
-                        Tags <span className="text-red-400">*</span>
+                    <label className="text-sm font-bold text-gray-700">
+                        Tags * <span className="text-gray-500 font-normal">(Select at least one)</span>
                     </label>
                     <div className="flex flex-wrap gap-2">
                         {TAGS.map((tag) => (
@@ -115,10 +109,11 @@ const BlogForm = ({ blog, onSubmit, onCancel, isSubmitting }) => {
                                 key={tag}
                                 type="button"
                                 onClick={() => toggleTag(tag)}
-                                className={`px-3 py-1 rounded-xl border text-sm transition ${selectedTags.includes(tag)
-                                    ? 'bg-navy text-white'
-                                    : 'text-gray-800'
-                                    }`}
+                                className={`px-4 py-2 rounded-xl border-2 text-sm font-semibold transition-all ${
+                                    selectedTags.includes(tag)
+                                        ? 'bg-navy text-white border-navy shadow-md shadow-navy/20'
+                                        : 'bg-white text-gray-700 border-gray-200 hover:border-navy/30 hover:bg-navy/5'
+                                }`}
                             >
                                 {tag}
                             </button>
@@ -126,6 +121,21 @@ const BlogForm = ({ blog, onSubmit, onCancel, isSubmitting }) => {
                     </div>
                 </div>
 
+                {/* Content */}
+                <div className="space-y-2">
+                    <label className="text-sm font-bold text-gray-700">
+                        Blog Content *
+                    </label>
+                    <div className="min-h-[250px]">
+                        <TextEditor
+                            value={content}
+                            onChange={(newContent) => setContent(newContent)}
+                            placeholder="Write your blog content here..."
+                        />
+                    </div>
+                </div>
+
+                {/* Image Uploader */}
                 <ImageUploader
                     selectedImages={selectedImages}
                     setSelectedImages={setSelectedImages}
@@ -133,27 +143,22 @@ const BlogForm = ({ blog, onSubmit, onCancel, isSubmitting }) => {
                     onRemoveExisting={handleRemoveExistingImage}
                 />
 
-                <div className="w-full flex justify-center gap-4 mt-6">
-                    <button
-                        type="submit"
-                        disabled={isDisabled}
-                        className={`w-1/5 flex items-center justify-center py-2 rounded-lg text-white transition ${isDisabled
-                            ? 'bg-purple opacity-50'
-                            : 'bg-purple hover:bg-purple/80'
-                            }`}
-                    >
-                        {isSubmitting ? <CircularProgress size={20} color="inherit" /> : 'Publish'}
-                    </button>
-                    <button
-                        type="button"
-                        onClick={onCancel}
-                        className="w-1/5 bg-my-gray py-2 text-navy border border-purplegray rounded-lg hover:bg-white transition"
-                    >
-                        Cancel
-                    </button>
-                </div>
-            </form>
-        </div>
+                {/* Confirmation Checkbox for Editing */}
+                {isEditing && (
+                    <label className="flex items-center gap-3 p-4 bg-amber-50 rounded-xl cursor-pointer">
+                        <input 
+                            type="checkbox" 
+                            checked={confirmUpdate} 
+                            onChange={() => setConfirmUpdate(!confirmUpdate)} 
+                            className="w-5 h-5 accent-navy" 
+                        />
+                        <span className="text-sm font-medium text-amber-900 text-left">
+                            I am sure I want to modify this blog post.
+                        </span>
+                    </label>
+                )}
+            </div>
+        </form>
     );
 };
 

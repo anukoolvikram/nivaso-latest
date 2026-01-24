@@ -201,11 +201,10 @@
 // export default ResidentCommunityBlogs;
 
 
-import BlogManager from '../Blog/BlogManager'
-const SocietyCommunityBlogs=()=>{
-    return (
-        <BlogManager variant="resident" />
-    )
-}
+import BlogManager from '../Blog/BlogManager';
 
-export default SocietyCommunityBlogs;
+const ResidentCommunityBlogs = () => (
+  <BlogManager variant="resident" />
+);
+
+export default ResidentCommunityBlogs;

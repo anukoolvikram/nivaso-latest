@@ -16,7 +16,7 @@ export const residentConfig = {
     },
     'Community Blogs': {
         title: 'Community Blogs',
-        subtitle: 'View society and resident notices',
+        subtitle: 'View and share community blogs',
         Component: ResidentCommunity,
     },
     'Profile': {

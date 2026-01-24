@@ -1,79 +1,151 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { handleAuthSuccess, register, selfRegister } from '../../services/societyService';
-import { loginForAll } from '../../services/authService';
-// components
-import LoginForm from '../../components/Login/Society/LoginForm';
-import RegisterForm from '../../components/Login/Society/RegisterForm';
-import AuthFormToggle from '../../components/Login/AuthFormToggle';
+// import { useState } from 'react';
+// import { useNavigate } from 'react-router-dom';
+// import { handleAuthSuccess, register, selfRegister } from '../../services/societyService';
+// import { loginForAll } from '../../services/authService';
+// // components
+// import LoginForm from '../../components/Login/Society/LoginForm';
+// import RegisterForm from '../../components/Login/Society/RegisterForm';
+// import AuthFormToggle from '../../components/Login/AuthFormToggle';
+
+// const SocietyLogin = () => {
+//     const [isRegistered, setIsRegistered] = useState(true);
+//     const [loading, setLoading] = useState(false);
+//     const [error, setError] = useState('');
+//     const navigate = useNavigate();
+
+//     const handleLogin = async (email, password) => {
+//         setLoading(true);
+//         setError('');
+//         try {
+//             const response = await loginForAll(email, password, 'society');
+//             handleAuthSuccess(response.data, navigate);
+//         } catch (err) {
+//             console.log(err);
+//             setError('Login failed.');
+//         } finally {
+//             setLoading(false);
+//         }
+//     };
+
+//     const handleRegister = async (formData, hasCode) => {
+//         setLoading(true);
+//         setError('');
+//         try {
+//             const apiCall = hasCode ? register : selfRegister;
+//             const response = await apiCall(formData);
+//             handleAuthSuccess(response.data, navigate);
+//         } catch (err) {
+//             console.log(err);
+//             setError('Registration failed. Please try again.');
+//         } finally {
+//             setLoading(false);
+//         }
+//     };
+
+//     const toggleForm = () => {
+//         setIsRegistered(!isRegistered);
+//         setError(''); // Clear error on toggle
+//     };
+
+//     return (
+//         <div className="w-full max-w-lg bg-white border border-gray-200 rounded-xl shadow-md py-6 mx-auto">
+//             <h2 className="text-2xl font-bold text-center text-gray-800 mb-6">
+//                 {isRegistered ? "Society Login" : "Society Registration"}
+//             </h2>
+
+//             {isRegistered ? (
+//                 <LoginForm 
+//                     onLogin={handleLogin} 
+//                     loading={loading}
+//                     errorMessage={error}
+//                 />
+//             ) : (
+//                 <RegisterForm 
+//                     onRegister={handleRegister} 
+//                     loading={loading}
+//                     errorMessage={error}
+//                 />
+//             )}
+
+//             <AuthFormToggle
+//                 isRegistered={isRegistered}
+//                 toggleForm={toggleForm}
+//                 loading={loading}
+//             />
+//         </div>
+//     );
+// };
+
+// export default SocietyLogin;
+
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { handleAuthSuccess, register, selfRegister } from "../../services/societyService";
+import { loginForAll } from "../../services/authService";
+
+import LoginForm from "../../components/Login/Society/LoginForm";
+import RegisterForm from "../../components/Login/Society/RegisterForm";
+import AuthFormToggle from "../../components/Login/AuthFormToggle";
 
 const SocietyLogin = () => {
-    const [isRegistered, setIsRegistered] = useState(true);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState('');
-    const navigate = useNavigate();
+  const [isRegistered, setIsRegistered] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const navigate = useNavigate();
 
-    const handleLogin = async (email, password) => {
-        setLoading(true);
-        setError('');
-        try {
-            const response = await loginForAll(email, password, 'society');
-            handleAuthSuccess(response.data, navigate);
-        } catch (err) {
-            console.log(err);
-            setError('Login failed.');
-        } finally {
-            setLoading(false);
-        }
-    };
+  const handleLogin = async (email, password) => {
+    setLoading(true);
+    setError("");
 
-    const handleRegister = async (formData, hasCode) => {
-        setLoading(true);
-        setError('');
-        try {
-            const apiCall = hasCode ? register : selfRegister;
-            const response = await apiCall(formData);
-            handleAuthSuccess(response.data, navigate);
-        } catch (err) {
-            console.log(err);
-            setError('Registration failed. Please try again.');
-        } finally {
-            setLoading(false);
-        }
-    };
+    try {
+      const response = await loginForAll(email, password, "society");
+      handleAuthSuccess(response.data, navigate);
+    } catch (err) {
+      console.log(err);
+      setError("Login Failed. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    const toggleForm = () => {
-        setIsRegistered(!isRegistered);
-        setError(''); // Clear error on toggle
-    };
+  const handleRegister = async (formData, hasSocietyCode) => {
+    setLoading(true);
+    setError("");
 
-    return (
-        <div className="w-full max-w-lg bg-white border border-gray-200 rounded-xl shadow-md py-6 mx-auto">
-            <h2 className="text-2xl font-bold text-center text-gray-800 mb-6">
-                {isRegistered ? "Society Login" : "Society Registration"}
-            </h2>
+    try {
+      const apiCall = hasSocietyCode ? register : selfRegister;
+      const response = await apiCall(formData);
+      handleAuthSuccess(response.data, navigate);
+    } catch (err) {
+      console.log(err);
+      setError("Registration failed. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-            {isRegistered ? (
-                <LoginForm 
-                    onLogin={handleLogin} 
-                    loading={loading}
-                    errorMessage={error}
-                />
-            ) : (
-                <RegisterForm 
-                    onRegister={handleRegister} 
-                    loading={loading}
-                    errorMessage={error}
-                />
-            )}
+  const toggleForm = () => {
+    setIsRegistered((prev) => !prev);
+    setError("");
+  };
 
-            <AuthFormToggle
-                isRegistered={isRegistered}
-                toggleForm={toggleForm}
-                loading={loading}
-            />
-        </div>
-    );
+  return (
+    <div className="w-full animate-in fade-in duration-500">
+      <h2 className="text-xl font-montserrat font-bold text-slate-800 mb-6 text-center lg:text-left">
+        {isRegistered ? "Society Access" : "Society Registration"}
+      </h2>
+
+      {isRegistered ? (
+        <LoginForm onLogin={handleLogin} loading={loading} errorMessage={error} />
+      ) : (
+        <RegisterForm onRegister={handleRegister} loading={loading} errorMessage={error} />
+      )}
+
+      <div className="pt-2">
+        <AuthFormToggle isRegistered={isRegistered} toggleForm={toggleForm} loading={loading} />
+      </div>
+    </div>
+  );
 };
 
 export default SocietyLogin;

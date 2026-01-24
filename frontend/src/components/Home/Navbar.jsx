@@ -21,7 +21,7 @@ export default function Navbar({ sections, activeSection, onNavClick }) {
     <nav className={`fixed w-full text-white z-50 py-3 transition-all duration-300 ${scrolled ? 'bg-black/70 backdrop-blur-md border-b border-gray-700' : 'bg-transparent'}`}>
       <div className="container mx-auto px-4 flex justify-between items-center">
         {/* Logo or brand name - add your logo here */}
-        <div className="font-cormorant text-2xl font-semibold">
+        <div className="font-montserrat text-2xl font-semibold">
           Nivaso
         </div>
 
@@ -31,7 +31,7 @@ export default function Navbar({ sections, activeSection, onNavClick }) {
             <button 
               key={sec} 
               onClick={() => onNavClick(sec)}
-              className={`px-3 py-1 font-cormorant text-lg transition-all duration-300 relative group ${
+              className={`px-3 py-1 font-montserrat text-lg transition-all duration-300 relative group ${
                 activeSection === sec ? "text-white font-bold" : "text-gray-300 hover:text-white"
               }`}
             >

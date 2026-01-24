@@ -2,7 +2,7 @@ import { useEffect, useState, useMemo, useCallback } from 'react';
 import { useToast } from '../../context/ToastContext';
 import apiClient from '../../services/apiClient';
 import { fetchUserInfo } from '../../services/authService';
-import { createNotice, updateNotice } from '../../services/noticeService'; // Assumed service
+import { createNotice, updateNotice } from '../../services/noticeService';
 import NoticeList from '../Notice/NoticeList';
 import NoticeDescription from '../Notice/NoticeDescription';
 import NoticeForm from '../Notice/NoticeForm';
@@ -36,8 +36,7 @@ const ResidentNoticeboard = () => {
       setCurrentUser(userData);
       setNotices(noticeResponse.data);
     } catch (error) {
-      console.error("Invalid token or error fetching data:", error);
-      showToast("User authentication failed or could not load data", "error");
+      showToast("Could not load data", "error");
     } finally {
       setLoading(false);
     }
@@ -49,160 +48,103 @@ const ResidentNoticeboard = () => {
 
   const filteredNotices = useMemo(() => {
     if (activeTab === 'mine') {
-      return notices.filter((notice) => notice.author_type=='resident' && notice.author_id === currentUser.userId);
+      return notices.filter((n) => n.author_type === 'resident' && n.author_id === currentUser?.userId);
     }
-    else{
-      return notices;
-    }
-  }, [notices, activeTab, currentUser]); 
-
+    return notices;
+  }, [notices, activeTab, currentUser]);
 
   const handleFormSubmit = async (formData) => {
     setIsSubmitting(true);
     try {
       let finalImages = [...(formData.images || [])];
-      if (formData.newImages && formData.newImages.length > 0) {
-        const imageUrls = await Promise.all(
-          formData.newImages.map(uploadImageToCloudinary)
-        );
+      if (formData.newImages?.length > 0) {
+        const imageUrls = await Promise.all(formData.newImages.map(uploadImageToCloudinary));
         finalImages = [...finalImages, ...imageUrls];
       }
-      const payload = {
-        title: formData.title,
-        content: formData.content,
-        type: formData.type,
-        images: finalImages,
-      };
-      const isEditing = Boolean(editingNotice?.id);
-      if (isEditing) {
+      const payload = { ...formData, images: finalImages };
+      
+      if (editingNotice?.id) {
         await updateNotice(editingNotice.id, payload);
-        showToast('Notice updated successfully!', 'success');
+        showToast('Notice updated!', 'success');
       } else {
         await createNotice(payload);
-        showToast('Notice submitted for approval!', 'success');
+        showToast('Submitted for approval!', 'success');
       }
       setShowForm(false);
       setEditingNotice(null);
-      setViewingNotice(null);
-      setActiveTab('all'); 
-      fetchNoticesAndUser(); 
+      fetchNoticesAndUser();
     } catch (err) {
-      console.log(err)
       showToast('Submission failed', 'error');
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleDelete = useCallback(async () => {
-    if (!noticeToDeleteId) return;
-    try {
-      await apiClient.delete(`/notice/delete/${noticeToDeleteId}`);
-      setNotices((prev) => prev.filter((n) => n.id !== noticeToDeleteId));
-      showToast('Notice deleted', 'success');
-      if (viewingNotice?.id === noticeToDeleteId) {
-        setViewingNotice(null);
-      }
-    } catch (error) {
-      console.error('Delete failed:', error);
-      showToast('Failed to delete notice', 'error');
-    } finally {
-      setNoticeToDeleteId(null);
-    }
-  }, [showToast, viewingNotice, noticeToDeleteId]);
-
-
-  const handleNoticeUpdate = async (noticeId) => {
-    try {
-      const response = await apiClient.get(`/notice/get/${noticeId}`);
-      const updatedNotice = response.data[0];
-      setNotices(prev => prev.map(n => n.id === noticeId ? updatedNotice : n));
-      setViewingNotice(updatedNotice);
-    } catch (error) {
-      console.error("Error updating notice:", error);
-    }
-  };
-  
-  const handleTabChange = useCallback((tab) => {
-    setActiveTab(tab);
-    setViewingNotice(null);
-  }, []);
-
-  const handleNoticeClick = useCallback((notice) => {
-    setViewingNotice(notice);
-  }, []);
-
-  const handleCreateNotice = useCallback(() => {
-    setEditingNotice(null);
-    setViewingNotice(null);
-    setShowForm(true);
-  }, []);
-
-  const handleEdit = useCallback((noticeToEdit) => {
-    setEditingNotice(noticeToEdit);
-    setViewingNotice(null);
-    setShowForm(true);
-  }, []);
-
-  const handleCancelForm = useCallback(() => {
-    setShowForm(false);
-    setEditingNotice(null);
-  }, []);
-
   return (
-    <div className="flex min-h-screen font-montserrat">
-      <div className={`${viewingNotice ? 'w-2/3' : 'w-full'} px-6 py-4 bg-gray-100/50 flex flex-col gap-6 transition-all duration-200`}>
-        {/* List View */}
-        {!showForm && (
+    <div className="flex flex-col lg:flex-row w-full min-h-screen font-montserrat bg-gray-50">
+      {/* List Section: Hidden when form is shown */}
+      {!showForm && (
+        <div className={`
+          flex-1 min-w-0 overflow-y-auto px-4 py-6 md:px-8
+          ${viewingNotice ? 'hidden lg:block lg:w-2/3' : 'w-full'}
+        `}>
           <NoticeList
             notices={filteredNotices}
             loading={loading}
             activeTab={activeTab}
             tabs={TABS}
-            onTabChange={handleTabChange}
-            onNoticeClick={handleNoticeClick}
-            onCreateNotice={handleCreateNotice}
+            onTabChange={(tab) => { setActiveTab(tab); setViewingNotice(null); }}
+            onNoticeClick={setViewingNotice}
+            onCreateNotice={() => { setEditingNotice(null); setShowForm(true); setViewingNotice(null); }}
             viewingNoticeId={viewingNotice?.id}
-            handleEdit={handleEdit}
-            handleDelete={(id) => setNoticeToDeleteId(id)}
-            userRole='resident'
-          />
-        )}
-
-        {/* Form View */}
-        {showForm && (
-          <NoticeForm
-            notice={editingNotice}
-            onCancel={handleCancelForm}
-            onSubmit={handleFormSubmit}
-            isSubmitting={isSubmitting}
-            noticeTypes={['Lost & Found']}
-            userRole='resident'
-          />
-        )}
-      </div>
-
-      {/* Detail View (Slide Panel) */}
-      {viewingNotice && !showForm && (
-        <div className="w-1/3 bg-white border-l border-gray-200">
-          <NoticeDescription
-            user={currentUser}
-            notice={viewingNotice}
-            onClose={() => setViewingNotice(null)}
-            onEdit={() => handleEdit(viewingNotice)}
-            onDelete={() => setNoticeToDeleteId(viewingNotice.id)}
-            onNoticeUpdate={handleNoticeUpdate}
+            handleEdit={(n) => { setEditingNotice(n); setShowForm(true); setViewingNotice(null); }}
+            handleDelete={setNoticeToDeleteId}
             userRole='resident'
           />
         </div>
       )}
-      
-      {/* Delete Confirmation Dialog */}
+
+      {/* Form Section: Full width when shown */}
+      {showForm && (
+        <div className="w-full overflow-y-auto bg-gray-50 px-4 py-6 md:px-8">
+          <div className="max-w-7xl mx-auto">
+            <NoticeForm
+              notice={editingNotice}
+              onCancel={() => { setShowForm(false); setEditingNotice(null); }}
+              onSubmit={handleFormSubmit}
+              isSubmitting={isSubmitting}
+              noticeTypes={['Lost & Found', 'General', 'Maintenance']}
+              userRole='resident'
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Detail Section: Overlay on mobile, side-panel on desktop */}
+      {viewingNotice && !showForm && (
+        <div className="fixed inset-0 z-50 lg:relative lg:inset-auto lg:z-0 lg:w-1/3 bg-white border-l border-gray-200 shadow-2xl lg:shadow-none overflow-y-auto">
+          <NoticeDescription
+            user={currentUser}
+            notice={viewingNotice}
+            onClose={() => setViewingNotice(null)}
+            onEdit={() => { setEditingNotice(viewingNotice); setShowForm(true); }}
+            onDelete={() => setNoticeToDeleteId(viewingNotice.id)}
+            onNoticeUpdate={fetchNoticesAndUser}
+            userRole='resident'
+          />
+        </div>
+      )}
+
       <DeleteDialog
         isOpen={Boolean(noticeToDeleteId)}
         onCancel={() => setNoticeToDeleteId(null)}
-        onConfirm={handleDelete}
-        itemType="Notice"
+        onConfirm={async () => {
+            await apiClient.delete(`/notice/delete/${noticeToDeleteId}`);
+            setNotices(prev => prev.filter(n => n.id !== noticeToDeleteId));
+            setNoticeToDeleteId(null);
+            setViewingNotice(null);
+            showToast('Deleted successfully', 'success');
+        }}
       />
     </div>
   );
